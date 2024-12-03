@@ -1,12 +1,10 @@
-// src/plugins/vuetify.js
-import { createVuetify } from "vuetify";
-import "vuetify/styles"; // Asigură-te că Vuetify Styles este importat
-import "@mdi/font/css/materialdesignicons.css"; // Import Material Design Icons
+// Styles
+import '@mdi/font/css/materialdesignicons.css'
+import 'vuetify/styles'
 
-const vuetify = createVuetify({
-  icons: {
-    defaultSet: "mdi", // Setează Material Design Icons ca set implicit
-  },
-});
+// Vuetify
+import { createVuetify } from 'vuetify'
 
-export default vuetify;
+export default createVuetify(
+  // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
+)

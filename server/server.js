@@ -6,6 +6,8 @@ const cors = require("cors");
 const port = 3000;
 const logSlowRequests = require("./middleware/logSlowRequests");
 const userRouter = require("./userManagement/userRouter");
+const sectionsRouter = require("./sectionsManagement/sectionsRouter");
+const electionsRouter = require("./electionsManagement/electionsRouter");
 
 app.use(httpLogger("dev"));
 app.use(cors()); //see more at https://www.npmjs.com/package/cors
@@ -13,6 +15,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json()); //we expect JSON data to be sent as payloads
 app.use(logSlowRequests(100));
 app.use(userRouter);
+app.use(sectionsRouter);
+app.use(electionsRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

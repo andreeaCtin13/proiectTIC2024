@@ -10,10 +10,10 @@ const registerUser = async (req, res) => {
     email: email,
     password: password,
   };
+
   try {
     const addedUser = await db.collection("users").add(newUser);
 
-    // Get the data of the newly created document
     const userDoc = await addedUser.get();
     const userData = userDoc.data();
 

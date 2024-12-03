@@ -23,8 +23,6 @@
         <br />
 
         <v-btn
-          :disabled="!form"
-          :loading="loading"
           color="success"
           size="large"
           type="submit"
@@ -33,6 +31,17 @@
         >
           Sign In
         </v-btn>
+        <br />
+
+        <v-btn
+          color="failed"
+          size="large"
+          type="submit"
+          variant="elevated"
+          block
+        >
+          Register
+        </v-btn>
       </v-form>
     </v-card>
   </v-sheet>
@@ -40,6 +49,7 @@
 
 <script>
 export default {
+  name: "RegisterView",
   data: () => ({
     form: false,
     email: null,
@@ -49,15 +59,18 @@ export default {
 
   methods: {
     async onSubmit() {
+      const baseUrl = "http://localhost:3000";
+
       if (!this.form) return;
 
-      this.loading = true;
-      const baseUrl = "http://localhost:3000/";
       const data = {
         email: this.email,
         password: this.password,
       };
-      await fetch(baseUrl + "users", {
+
+      this.loading = true;
+
+      await fetch(baseUrl + "/users", {
         method: "POST",
         mode: "cors",
         cache: "no-cache",
@@ -69,6 +82,7 @@ export default {
         referrerPolicy: "no-referrer",
         body: JSON.stringify(data),
       });
+
       this.loading = false;
     },
     required(v) {
@@ -77,3 +91,5 @@ export default {
   },
 };
 </script>
+
+<style></style>

@@ -6,7 +6,6 @@ const {
   loginValidationRules,
 } = require("../validators/userValidator");
 const { validate } = require("../middleware/validate");
-//jjjj
 router.get("/users", userService.getAllUsers);
 router.post(
   "/users",
