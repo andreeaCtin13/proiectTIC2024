@@ -59,11 +59,13 @@ import axios from "axios";
 import toastr from "toastr";
 import "toastr/build/toastr.min.css";
 import { useRouter } from "vue-router";
+import { inject } from "vue";
 
 export default {
   name: "LoginView",
   setup() {
     const router = useRouter();
+    const user = inject("user");
 
     const register = () => {
       router.push("/register");
@@ -71,6 +73,7 @@ export default {
 
     return {
       register,
+      user,
     };
   },
 
@@ -109,18 +112,21 @@ export default {
 
         toastr.success("Login successful!", "Success");
 
-        if (response.data.user.role === "observer") {
+        this.user = response.data?.user;
+
+        if (response.data?.user?.role === "observer") {
           this.$router.push("/observer-homepage");
+          return;
         } else {
           this.$router.push("/admin-homepage");
+          return;
         }
       } catch (error) {
-        console.error("Login error:", error);
-
+        console.log(error);
         const errorMessage =
-          error.response?.data?.errors?.[0]?.msg ||
-          "An unexpected error occurred";
+          error?.response?.data || "An unexpected error occurred";
         toastr.error(errorMessage, "Login Failed");
+        return;
       } finally {
         this.loading = false;
       }

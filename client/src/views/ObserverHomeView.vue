@@ -1,23 +1,27 @@
 <template>
   <div class="observer">
     <h1>Observer Homepage</h1>
-    <div>{{ user }}</div>
+    <div>Email: {{ user?.email }}</div>
   </div>
 </template>
 
 <script>
-//
-// export default {
-//   props: ["user"],
-// };
+import { inject } from "vue";
 
-// import ChildComponent from "./ChildComponent.vue"; // Import the child component
+export default {
+  name: "ObserverHomepage",
+  setup() {
+    const user = inject("user");
 
-// export default {
-//   components: {
-//     ChildComponent,
-//   },
-// };
+    return {
+      user,
+    };
+  },
+};
 </script>
 
-<style></style>
+<style scoped>
+.observer {
+  padding: 20px;
+}
+</style>

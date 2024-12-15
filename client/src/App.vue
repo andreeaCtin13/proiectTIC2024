@@ -19,8 +19,6 @@ export default {
   setup() {
     const user = ref(null);
 
-    // user.value = { name: "John Doe", role: "admin" };
-
     provide("user", user);
 
     const isLoggedIn = computed(
@@ -28,6 +26,7 @@ export default {
     );
 
     return {
+      user,
       isLoggedIn,
     };
   },

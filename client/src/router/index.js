@@ -6,22 +6,6 @@ import ObserverHomepage from "../views/ObserverHomeView.vue";
 
 const routes = [
   {
-    path: "/admin-homepage",
-    name: "admin-homepage",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: AdministratorHomepage,
-  },
-  {
-    path: "/observer-homepage",
-    name: "observer-homepage",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: ObserverHomepage,
-  },
-  {
     path: "/register",
     name: "register",
     component: RegisterView,
@@ -30,6 +14,17 @@ const routes = [
     path: "/",
     name: "login",
     component: LoginView,
+  },
+  {
+    path: "/admin-homepage",
+    name: "admin-homepage",
+    component: AdministratorHomepage,
+  },
+  {
+    path: "/observer-homepage",
+    name: "observer-homepage",
+
+    component: ObserverHomepage,
   },
 ];
 
