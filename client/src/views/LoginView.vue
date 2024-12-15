@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-sheet class=".3pa-12 m-0 full-space register">
+    <v-sheet class="full-space login">
       <h1 class="title">ObservErr<span class="span">(ors)</span></h1>
 
       <v-card class="mx-auto px-6 py-8" max-width="344">
@@ -25,16 +25,6 @@
               clearable
             ></v-text-field>
 
-            <v-text-field
-              v-model="confirmPassword"
-              :readonly="loading"
-              :rules="[required, passwordsMatch]"
-              class="mb-2"
-              label="Confirm Password"
-              placeholder="Re-enter your password"
-              clearable
-            ></v-text-field>
-
             <br />
 
             <v-btn
@@ -44,19 +34,18 @@
               variant="elevated"
               block
             >
-              Register
+              Login
             </v-btn>
             <br />
 
             <v-btn
-              @click="login"
               color="failed"
               size="large"
-              type="submit"
               variant="elevated"
+              @click="register"
               block
             >
-              Login
+              Register
             </v-btn>
           </div>
         </v-form>
@@ -64,38 +53,43 @@
     </v-sheet>
   </v-app>
 </template>
+
 <script>
 import axios from "axios";
 import toastr from "toastr";
-import "toastr/build/toastr.min.css"; // Asigură-te că acest CSS este inclus pentru stiluri
+import "toastr/build/toastr.min.css";
 import { useRouter } from "vue-router";
 
 export default {
-  name: "RegisterView",
+  name: "LoginView",
+  setup() {
+    const router = useRouter();
+
+    const register = () => {
+      router.push("/register");
+    };
+
+    return {
+      register,
+    };
+  },
+
   data: () => ({
     form: false,
     email: null,
     password: null,
-    confirmPassword: null,
     loading: false,
   }),
-  setup() {
-    const router = useRouter();
 
-    const login = () => {
-      router.push("/");
-    };
-
-    return {
-      login,
-    };
-  },
   methods: {
     async onSubmit() {
       const baseUrl = "http://localhost:3000";
 
       if (!this.form) {
-        toastr.error("Please complete all fields correctly!", "Error");
+        toastr.error(
+          "Please fill out all fields correctly!",
+          "Validation Error"
+        );
         return;
       }
 
@@ -107,24 +101,26 @@ export default {
       this.loading = true;
 
       try {
-        const response = await axios.post(`${baseUrl}/users`, data, {
+        const response = await axios.post(`${baseUrl}/login`, data, {
           headers: {
             "Content-Type": "application/json",
           },
         });
 
-        toastr.success("Registration successful!", "Success");
-        console.log("Server Response:", response.data);
+        toastr.success("Login successful!", "Success");
 
-        this.$router.push("/");
+        if (response.data.user.role === "observer") {
+          this.$router.push("/observer-homepage");
+        } else {
+          this.$router.push("/admin-homepage");
+        }
       } catch (error) {
-        console.error("Error during registration:", error);
+        console.error("Login error:", error);
+
         const errorMessage =
-          error.response?.data || "An unexpected error occurred";
-        toastr.error(
-          errorMessage,
-          "Registration Failed - " + error.response.data?.errors[0].msg
-        );
+          error.response?.data?.errors?.[0]?.msg ||
+          "An unexpected error occurred";
+        toastr.error(errorMessage, "Login Failed");
       } finally {
         this.loading = false;
       }
@@ -133,15 +129,11 @@ export default {
     required(v) {
       return !!v || "Field is required";
     },
-
-    passwordsMatch(v) {
-      return v === this.password || "Passwords do not match";
-    },
   },
 };
 </script>
 
-<style>
+<style scoped>
 .title {
   color: var(--var--light-black);
   font-size: 8rem;
@@ -151,29 +143,14 @@ export default {
   font-size: 4rem;
 }
 
-.register {
+.login {
   text-align: center;
   display: flex;
   flex-direction: column;
 }
 
-.full-space {
-  background-color: var(--var--light-blue);
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-sizing: border-box;
-  overflow: hidden;
-  margin: 0;
-}
-
-.form {
-  min-width: 20rem;
-}
-
-.container {
-  width: 90%;
+.btn {
+  margin: 2rem;
+  font-size: 2rem;
 }
 </style>

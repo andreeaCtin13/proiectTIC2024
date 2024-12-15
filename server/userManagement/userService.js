@@ -1,19 +1,51 @@
 const db = require("../db_config/dbInit");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
+
+const SECRET_KEY = process.env.SECRET_KEY;
+if (!SECRET_KEY) {
+  console.error("SECRET_KEY is missing. Please set it in your .env file.");
+  process.exit(1);
+}
 
 const getAllUsers = (req, res) => {
-  res.send("you want to get all users");
+  res.send("You want to get all users");
 };
-const registerUser = async (req, res) => {
-  const { email, password } = req.body;
 
-  const newUser = {
-    email: email,
-    password: password,
-  };
+const registerUser = async (req, res) => {
+  let { email, password, role } = req.body;
+
+  if (!role) {
+    role = "observer";
+  }
+  console.log("Received data for registration:", req.body);
+
+  if (!email || !password) {
+    return res.status(400).send("Email and password are required");
+  }
 
   try {
-    const addedUser = await db.collection("users").add(newUser);
+    const isEmailUsed = await db
+      .collection("users")
+      .where("email", "==", email)
+      .limit(1)
+      .get();
 
+    if (!isEmailUsed.empty) {
+      return res.status(409).send("Email already in use");
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const newUser = {
+      email,
+      password: hashedPassword,
+      role,
+    };
+
+    const addedUser = await db.collection("users").add(newUser);
     const userDoc = await addedUser.get();
     const userData = userDoc.data();
 
@@ -25,56 +57,69 @@ const registerUser = async (req, res) => {
       ...userData,
     });
   } catch (error) {
-    res.status(500).send(JSON.stringify(error));
+    console.error("Error while registering user:", error);
+    res.status(500).send("Internal Server Error");
   }
 };
+
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
-  const userToAuthenticate = {
-    email: email,
-    password: password,
-  };
+  console.log("Login attempt:", req.body);
 
-  let auth = false;
+  if (!email || !password) {
+    return res.status(400).send("Email and password are required");
+  }
 
-  const querySnapshot = await db
-    .collection("users")
-    .where("email", "==", userToAuthenticate.email)
-    .limit(1)
-    .get();
+  try {
+    const userDocSnapshot = await db
+      .collection("users")
+      .where("email", "==", email)
+      .limit(1)
+      .get();
 
-  querySnapshot.forEach((element) => {
-    console.log("A user matching the email address has been found.");
-    const userData = element.data();
+    if (userDocSnapshot.empty) {
+      console.log("User not found with email:", email);
+      return res.status(404).send("Invalid email or password");
+    }
 
-    if (userData.password === userToAuthenticate.password) auth = true;
-  });
+    let user = null;
+    userDocSnapshot.forEach((doc) => {
+      user = { id: doc.id, ...doc.data() };
+    });
 
-  if (auth) {
-    res.status(200).send("sampleToken");
-  } else {
-    res.status(401).send("Unauthorized");
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      console.log("Invalid password for email:", email);
+      return res.status(401).send("Invalid email or password");
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+
+    console.log("Login successful for user:", email);
+    res.status(200).json({ token, user });
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).send("Internal Server Error");
   }
 };
 
 const checkEmailNotInUse = async (email) => {
   try {
-    const usersRef = db.collection("users");
-    const querySnapshot = await usersRef
+    const querySnapshot = await db
+      .collection("users")
       .where("email", "==", email)
       .limit(1)
       .get();
 
-    if (!querySnapshot.empty) {
-      return Promise.reject("E-mail already in use");
-      // Email exists in the collection
-    }
-
-    return true;
+    return querySnapshot.empty;
   } catch (error) {
     console.error("Error checking email:", error);
-    throw error; // or handle it as you see fit
+    throw error;
   }
 };
 

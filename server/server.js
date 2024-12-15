@@ -16,9 +16,10 @@ app.use(express.json()); //we expect JSON data to be sent as payloads
 app.use(logSlowRequests(100));
 app.use(userRouter);
 app.use(sectionsRouter);
-app.use(electionsRouter);
++app.use(electionsRouter);
 
 app.get("/", (req, res) => {
+  2;
   res.send("Hello World!");
 });
 

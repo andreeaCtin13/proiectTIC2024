@@ -9,8 +9,8 @@ const userValidationRules = () => {
       .isEmail()
       .normalizeEmail()
       .custom(checkEmailNotInUse),
-    body("password", "Password must be at least 8 characters long")
-      .isLength({ min: 8 })
+    body("password", "Password must be at least 5 characters long")
+      .isLength({ min: 5 })
       .trim(),
   ];
 };
