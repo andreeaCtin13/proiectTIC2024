@@ -3,7 +3,7 @@ import RegisterView from "../views/RegisterView.vue";
 import LoginView from "../views/LoginView.vue";
 import AdministratorHomepage from "../views/AdministratorHomeView.vue";
 import ObserverHomepage from "../views/ObserverHomeView.vue";
-
+import Search from "../views/Search.vue";
 const routes = [
   {
     path: "/register",
@@ -23,8 +23,12 @@ const routes = [
   {
     path: "/observer-homepage",
     name: "observer-homepage",
-
     component: ObserverHomepage,
+  },
+  {
+    path: "/search",
+    name: "search",
+    component: Search,
   },
 ];
 
