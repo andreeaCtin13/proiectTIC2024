@@ -7,16 +7,15 @@
         append-icon="mdi-magnify"
         @input="fetchSections"
         outlined
-        class="mb-4"
+        class="mb-4 padding"
       ></v-text-field>
 
       <v-data-table
-        :headers="headers"
         :items="sections"
         :options.sync="options"
-        :server-items-length="totalItems"
         :loading="loading"
-        class="elevation-1"
+        class="elevation-1 table"
+        @update:model-value="itemsPerPage = parseInt($event, 10)"
         @update:options="fetchSections"
       >
         <template v-slot:top>
@@ -25,21 +24,19 @@
           </v-toolbar>
         </template>
 
-        <!-- Afisarea antetelor -->
         <template v-slot:[`column.address`]="{ column }">
-          <span>{{ column.text }}</span>
+          <span class="header">{{ column.text }}</span>
         </template>
         <template v-slot:[`column.county`]="{ column }">
-          <span>{{ column.text }}</span>
+          <span class="header">{{ column.text }}</span>
         </template>
         <template v-slot:[`column.location`]="{ column }">
-          <span>{{ column.text }}</span>
+          <span class="header">{{ column.text }}</span>
         </template>
         <template v-slot:[`column.number`]="{ column }">
-          <span>{{ column.text }}</span>
+          <span class="header">{{ column.text }}</span>
         </template>
 
-        <!-- Afișarea datelor -->
         <template v-slot:[`item.address`]="{ item }">
           {{ item.address }}
         </template>
@@ -52,6 +49,16 @@
         <template v-slot:[`item.number`]="{ item }">
           {{ item.number }}
         </template>
+
+        <template v-slot:bottom>
+          <div class="text-center pt-2">
+            <v-pagination
+              v-model="options.page"
+              :length="pageCount"
+              @input="fetchSections"
+            />
+          </div>
+        </template>
       </v-data-table>
     </v-container>
   </div>
@@ -59,6 +66,13 @@
 
 <script>
 import axios from "axios";
+
+const column = {
+  address: "address",
+  county: "county",
+  location: "location",
+  number: "number",
+};
 
 export default {
   data() {
@@ -74,12 +88,19 @@ export default {
         sortDesc: [],
       },
       headers: [
-        { text: "Address", value: "address" },
-        { text: "County", value: "county" },
-        { text: "Location", value: "location" },
-        { text: "Number", value: "number" },
+        { text: "Address", value: column.address },
+        { text: "County", value: column.county },
+        { text: "Location", value: column.location },
+        { text: "Number", value: column.number },
       ],
     };
+  },
+  computed: {
+    pageCount() {
+      return this.totalItems > 0
+        ? Math.ceil(this.totalItems / this.options.itemsPerPage)
+        : 1;
+    },
   },
   watch: {
     options: {
@@ -104,9 +125,12 @@ export default {
           },
         });
 
-        this.sections = response.data.items;
+        this.sections = response.data.items.map((item) => {
+          const { id, ...rest } = item;
+          return rest;
+        });
+
         this.totalItems = response.data.total;
-        console.log("total", response.data.total);
       } catch (error) {
         console.error("Failed to fetch sections:", error);
       } finally {
@@ -125,13 +149,22 @@ export default {
   margin-bottom: 16px;
 }
 
-/* Stilizare pentru antete */
 .v-data-table-header {
-  background-color: #3f51b5; /* Culoare de fundal pentru antete */
+  background-color: #3f51b5;
   color: white;
 }
 
-.v-data-table-header th {
-  font-weight: bold;
+.padding {
+  margin: 4rem 0;
+}
+
+.table {
+  margin-bottom: 2rem;
+  margin-top: 0;
+}
+
+.header {
+  color: black !important;
+  font-size: 2rem;
 }
 </style>

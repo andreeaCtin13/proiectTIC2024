@@ -22,6 +22,6 @@ export default {
 
 <style scoped>
 .observer {
-  padding: 4rem 2rem;
+  padding: 4rem;
 }
 </style>

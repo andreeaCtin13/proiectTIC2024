@@ -24,6 +24,8 @@
         class="nav-link"
         >Observer Homepage</router-link
       >
+      |
+      <router-link to="/" class="nav-link" @click="logout">Logout</router-link>
     </div>
   </v-app-bar>
 </template>
@@ -35,6 +37,11 @@ export default {
   name: "Navigation",
   setup() {
     const user = inject("user");
+    return { user };
+  },
+  logout() {
+    const user = inject("user");
+    this.user = null;
     return { user };
   },
 };
