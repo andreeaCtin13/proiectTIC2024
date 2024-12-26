@@ -112,9 +112,14 @@ export default {
 
         toastr.success("Login successful!", "Success");
 
-        this.user = response.data?.user;
+        if (!this.user) {
+          throw new Error("User context is not provided");
+        }
+        this.user.email = response.data?.user?.email;
+        this.user.role = response.data?.user?.role;
+        console.log("user in login", this.user);
 
-        if (response.data?.user?.role === "observer") {
+        if (this.user.role === "observer") {
           this.$router.push("/observer-homepage");
           return;
         } else {

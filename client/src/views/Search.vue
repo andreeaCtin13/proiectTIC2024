@@ -21,10 +21,25 @@
       >
         <template v-slot:top>
           <v-toolbar flat>
-            <v-toolbar-title>Sections Table</v-toolbar-title>
-            <v-spacer></v-spacer>
+            <v-toolbar-title>Sections</v-toolbar-title>
           </v-toolbar>
         </template>
+
+        <!-- Afisarea antetelor -->
+        <template v-slot:[`column.address`]="{ column }">
+          <span>{{ column.text }}</span>
+        </template>
+        <template v-slot:[`column.county`]="{ column }">
+          <span>{{ column.text }}</span>
+        </template>
+        <template v-slot:[`column.location`]="{ column }">
+          <span>{{ column.text }}</span>
+        </template>
+        <template v-slot:[`column.number`]="{ column }">
+          <span>{{ column.text }}</span>
+        </template>
+
+        <!-- Afișarea datelor -->
         <template v-slot:[`item.address`]="{ item }">
           {{ item.address }}
         </template>
@@ -77,17 +92,21 @@ export default {
   methods: {
     async fetchSections() {
       this.loading = true;
+      const baseUrl = "http://localhost:3000";
+
       try {
         const { page, itemsPerPage } = this.options;
-        const response = await axios.get("/sections", {
+        const response = await axios.get(`${baseUrl}/sections`, {
           params: {
             page,
             itemsPerPage,
             search: this.search,
           },
         });
+
         this.sections = response.data.items;
         this.totalItems = response.data.total;
+        console.log("total", response.data.total);
       } catch (error) {
         console.error("Failed to fetch sections:", error);
       } finally {
@@ -104,5 +123,15 @@ export default {
 <style scoped>
 .mb-4 {
   margin-bottom: 16px;
+}
+
+/* Stilizare pentru antete */
+.v-data-table-header {
+  background-color: #3f51b5; /* Culoare de fundal pentru antete */
+  color: white;
+}
+
+.v-data-table-header th {
+  font-weight: bold;
 }
 </style>

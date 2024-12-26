@@ -17,12 +17,16 @@ export default {
     Navigation,
   },
   setup() {
-    const user = ref(null);
+    const user = ref({ role: null });
 
     provide("user", user);
+    console.log("User provided in App.vue:", user);
 
     const isLoggedIn = computed(
-      () => user.value !== null && Object.keys(user.value).length > 0
+      () =>
+        user.value !== null &&
+        Object.keys(user.value).length > 0 &&
+        user.value.role !== null
     );
 
     return {

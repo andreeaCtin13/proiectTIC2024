@@ -12,7 +12,7 @@ export default {
   name: "ObserverHomepage",
   setup() {
     const user = inject("user");
-
+    console.log(user);
     return {
       user,
     };
@@ -22,6 +22,6 @@ export default {
 
 <style scoped>
 .observer {
-  padding: 20px;
+  padding: 4rem 2rem;
 }
 </style>
