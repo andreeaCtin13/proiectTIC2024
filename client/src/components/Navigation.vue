@@ -62,7 +62,7 @@ export default {
   display: flex !important;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-around;
 }
 
 .links-container {

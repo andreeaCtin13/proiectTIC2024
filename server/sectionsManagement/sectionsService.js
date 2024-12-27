@@ -1,28 +1,59 @@
 const db = require("../db_config/dbInit");
-
 const getAllSections = async (req, res) => {
   try {
-    const { page = 1, itemsPerPage = 10, search = "" } = req.query;
+    const {
+      page = 1,
+      itemsPerPage = 10,
+      search = "",
+      searchField = "address",
+    } = req.query;
+
     const sectionsRef = db.collection("sections");
+    const itemsPerPageNum = parseInt(itemsPerPage);
 
-    let query = sectionsRef.orderBy("address");
+    let query = sectionsRef;
 
-    if (search) {
-      query = query
-        .where("address", ">=", search)
-        .where("address", "<=", search + "\uf8ff");
+    if (search && searchField !== "None") {
+      if (searchField === "number") {
+        const searchNumber = parseFloat(search);
+
+        if (!isNaN(searchNumber)) {
+          query = query
+            .where(searchField, ">=", searchNumber)
+            .where(searchField, "<=", searchNumber);
+        } else {
+          return res.status(400).json({ error: "Invalid number search value" });
+        }
+      } else {
+        query = query
+          .where(searchField, ">=", search.toLowerCase())
+          .where(searchField, "<=", search.toLowerCase() + "\uf8ff");
+      }
     }
 
+    // Obținem totalul înainte de paginare
     const snapshot = await query.get();
     const total = snapshot.docs.length;
 
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + parseInt(itemsPerPage);
+    // Aplicați paginarea
+    const sections = [];
+    let lastDoc = null;
 
-    const sections = snapshot.docs.slice(startIndex, endIndex).map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    if (page > 1) {
+      const skipDocs = (page - 1) * itemsPerPageNum;
+      const skippedDocs = await query.limit(skipDocs).get();
+      lastDoc = skippedDocs.docs[skippedDocs.docs.length - 1];
+    }
+
+    if (lastDoc) {
+      query = query.startAfter(lastDoc);
+    }
+
+    const paginatedSnapshot = await query.limit(itemsPerPageNum).get();
+
+    paginatedSnapshot.forEach((doc) => {
+      sections.push({ id: doc.id, ...doc.data() });
+    });
 
     res.json({ items: sections, total });
   } catch (error) {

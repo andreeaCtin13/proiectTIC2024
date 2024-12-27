@@ -159,13 +159,12 @@ export default {
 
 .full-space {
   background-color: var(--var--light-blue);
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
-  overflow: hidden;
   margin: 0;
 }
 

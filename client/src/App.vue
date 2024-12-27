@@ -36,15 +36,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.full-space {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-</style>

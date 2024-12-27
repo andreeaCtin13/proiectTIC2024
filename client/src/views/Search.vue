@@ -5,10 +5,19 @@
         v-model="search"
         label="Search"
         append-icon="mdi-magnify"
-        @input="fetchSections"
+        @input="debouncedFetchSections"
         outlined
         class="mb-4 padding"
       ></v-text-field>
+
+      <v-select
+        v-model="searchField"
+        :items="searchFields"
+        label="Search by"
+        outlined
+        class="mb-4"
+        @change="fetchSections"
+      ></v-select>
 
       <v-data-table
         :items="sections"
@@ -66,77 +75,63 @@
 
 <script>
 import axios from "axios";
-
-const column = {
-  address: "address",
-  county: "county",
-  location: "location",
-  number: "number",
-};
+import debounce from "lodash/debounce";
 
 export default {
   data() {
     return {
       search: "",
+      searchField: "address",
+      searchFields: ["None", "address", "county", "location", "number"],
       sections: [],
       totalItems: 0,
       loading: false,
       options: {
         page: 1,
         itemsPerPage: 10,
-        sortBy: [],
-        sortDesc: [],
       },
+      pageCount: 1,
       headers: [
-        { text: "Address", value: column.address },
-        { text: "County", value: column.county },
-        { text: "Location", value: column.location },
-        { text: "Number", value: column.number },
+        { text: "Address", value: "address" },
+        { text: "County", value: "county" },
+        { text: "Location", value: "location" },
+        { text: "Number", value: "number" },
       ],
     };
-  },
-  computed: {
-    pageCount() {
-      return this.totalItems > 0
-        ? Math.ceil(this.totalItems / this.options.itemsPerPage)
-        : 1;
-    },
-  },
-  watch: {
-    options: {
-      handler() {
-        this.fetchSections();
-      },
-      deep: true,
-    },
   },
   methods: {
     async fetchSections() {
       this.loading = true;
-      const baseUrl = "http://localhost:3000";
 
       try {
         const { page, itemsPerPage } = this.options;
-        const response = await axios.get(`${baseUrl}/sections`, {
-          params: {
-            page,
-            itemsPerPage,
-            search: this.search,
-          },
+
+        const params = {
+          page,
+          itemsPerPage,
+          search: this.search,
+          searchField: this.searchField !== "None" ? this.searchField : null,
+        };
+
+        const response = await axios.get("http://localhost:3000/sections", {
+          params,
         });
 
-        this.sections = response.data.items.map((item) => {
-          const { id, ...rest } = item;
-          return rest;
-        });
-
+        this.sections = response.data.items;
         this.totalItems = response.data.total;
+        this.pageCount = Math.ceil(this.totalItems / itemsPerPage);
       } catch (error) {
-        console.error("Failed to fetch sections:", error);
+        console.error("Error fetching sections:", error);
       } finally {
         this.loading = false;
       }
     },
+    debouncedFetchSections: debounce(function () {
+      this.fetchSections();
+    }, 300),
+  },
+  watch: {
+    "options.page": "fetchSections",
   },
   created() {
     this.fetchSections();
