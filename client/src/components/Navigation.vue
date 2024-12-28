@@ -4,14 +4,21 @@
       <h1 class="titleNav">ObservErr<span class="spanNav">(ors)</span></h1>
     </v-app-bar-title>
     <div class="links-container">
-      <router-link to="/search" class="nav-link"
+      <router-link
+        to="/search"
+        class="nav-link"
+        v-if="user && user.role === 'observer'"
         >Search for a section</router-link
       >
-      |
-      <router-link to="/current-status" class="nav-link"
+      <span v-if="user && user.role === 'observer'"> | </span>
+      <router-link
+        to="/current-status"
+        class="nav-link"
+        v-if="user && user.role === 'observer'"
         >Current status</router-link
       >
-      |
+      <span v-if="user && user.role === 'observer'"> | </span>
+
       <router-link
         to="/admin-homepage"
         v-if="user && user.role === 'admin'"

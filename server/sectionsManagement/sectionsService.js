@@ -1,4 +1,7 @@
+const express = require("express");
+const xlsx = require("xlsx");
 const db = require("../db_config/dbInit");
+
 const getAllSections = async (req, res) => {
   try {
     const {
@@ -87,7 +90,50 @@ const addSections = async (req, res) => {
   }
 };
 
+const insertBulkSections = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const workbook = xlsx.readFile(req.file.path);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = xlsx.utils.sheet_to_json(sheet);
+
+    const sections = data.map((row) => ({
+      address: row["ADRESA"],
+      county: row["JUDET"],
+      location: row["SEDIU SECTIE"],
+      number: row["NR. SECTIE VOTARE"],
+    }));
+
+    const sectionsRef = db.collection("sections");
+    const chunkSize = 500;
+
+    for (let i = 0; i < sections.length; i += chunkSize) {
+      const batch = db.batch();
+      const chunk = sections.slice(i, i + chunkSize);
+
+      chunk.forEach((section) => {
+        const docRef = sectionsRef.doc();
+        batch.set(docRef, section);
+      });
+
+      await batch.commit();
+    }
+
+    res.status(201).json({
+      message: "Sections imported successfully",
+      count: sections.length,
+    });
+  } catch (error) {
+    console.error("Error uploading sections:", error);
+    res.status(500).json({ error: "Failed to upload sections" });
+  }
+};
+
 module.exports = {
   getAllSections,
   addSections,
+  insertBulkSections,
 };
