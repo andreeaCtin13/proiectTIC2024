@@ -1,21 +1,31 @@
 const express = require("express");
-const app = express();
 const httpLogger = require("morgan");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const logSlowRequests = require("./middleware/logSlowRequests");
+const app = express();
 const { faker } = require("@faker-js/faker");
 const port = 3000;
-const logSlowRequests = require("./middleware/logSlowRequests");
 const userRouter = require("./userManagement/userRouter");
 const sectionsRouter = require("./sectionsManagement/sectionsRouter");
 const electionsRouter = require("./electionsManagement/electionsRouter");
+
 const router = express.Router();
 const db = require("./db_config/dbInit");
 
+const corsOptions = {
+  origin: "http://localhost:8080",
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
 app.use(httpLogger("dev"));
-app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(logSlowRequests(100));
+app.use(cookieParser());
+
 app.use(userRouter);
 app.use(sectionsRouter);
 app.use(electionsRouter);

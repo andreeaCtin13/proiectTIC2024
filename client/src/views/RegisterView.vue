@@ -65,9 +65,9 @@
   </v-app>
 </template>
 <script>
-import axios from "axios";
+import axios from "../axios";
 import toastr from "toastr";
-import "toastr/build/toastr.min.css"; // Asigură-te că acest CSS este inclus pentru stiluri
+import "toastr/build/toastr.min.css";
 import { useRouter } from "vue-router";
 
 export default {

@@ -1,7 +1,6 @@
 <template>
   <div class="administrator">
     <h1 class="titleH1">Administrator Homepage</h1>
-    <div>{{ user }}</div>
     <button class="btn btnImportSectii" @click="uploadSections">
       Import sectii votare
     </button>
@@ -15,7 +14,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from "../axios";
 
 export default {
   data() {

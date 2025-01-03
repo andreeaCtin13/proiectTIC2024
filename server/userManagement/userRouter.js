@@ -5,8 +5,9 @@ const {
   userValidationRules,
   loginValidationRules,
 } = require("../validators/userValidator");
+const auth = require("../middleware/auth");
 const { validate } = require("../middleware/validate");
-router.get("/users", userService.getAllUsers);
+router.get("/users", auth, userService.getAllUsers);
 router.post(
   "/users",
   userValidationRules(),

@@ -55,7 +55,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from "../axios";
 import toastr from "toastr";
 import "toastr/build/toastr.min.css";
 import { useRouter } from "vue-router";
@@ -86,8 +86,6 @@ export default {
 
   methods: {
     async onSubmit() {
-      const baseUrl = "http://localhost:3000";
-
       if (!this.form) {
         toastr.error(
           "Please fill out all fields correctly!",
@@ -104,34 +102,57 @@ export default {
       this.loading = true;
 
       try {
-        const response = await axios.post(`${baseUrl}/login`, data, {
+        const response = await axios.post("/login", data, {
           headers: {
             "Content-Type": "application/json",
           },
         });
 
+        // Salvează token-ul în localStorage
+        const token = response.data?.token;
+        if (token && typeof token === "string" && token.length > 0) {
+          try {
+            sessionStorage.setItem("auth_token", token);
+            console.log("Token saved:", token);
+          } catch (storageError) {
+            console.error("Failed to save token:", storageError);
+            throw new Error("Failed to store authentication token");
+          }
+        } else {
+          console.error("Invalid token received:", token);
+          throw new Error("No valid token received from server");
+        }
+
+        // Mesaj de succes
         toastr.success("Login successful!", "Success");
 
+        // Asigură-te că user-ul există
         if (!this.user) {
-          throw new Error("User context is not provided");
+          console.error("User context is not provided");
+          toastr.error("Application error: User context is missing", "Error");
+          return;
         }
-        this.user.email = response.data?.user?.email;
-        this.user.role = response.data?.user?.role;
+
+        // Actualizează datele utilizatorului
+        const userData = response.data?.user || {};
+        this.user.email = userData.email || "N/A";
+        this.user.role = userData.role || "guest";
+
         console.log("user in login", this.user);
 
-        if (this.user.role === "observer") {
-          this.$router.push("/observer-homepage");
-          return;
-        } else {
-          this.$router.push("/admin-homepage");
-          return;
-        }
+        // Navigare pe baza rolului
+        const route =
+          this.user.role === "observer"
+            ? "/observer-homepage"
+            : "/admin-homepage";
+        console.log("Navigating to:", route);
+        this.$router.push(route);
       } catch (error) {
-        console.log(error);
-        const errorMessage =
-          error?.response?.data || "An unexpected error occurred";
-        toastr.error(errorMessage, "Login Failed");
-        return;
+        console.error("Login error:", error);
+        toastr.error(
+          error?.response?.data?.message || "An unexpected error occurred",
+          "Login Failed"
+        );
       } finally {
         this.loading = false;
       }

@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const SECRET_KEY = process.env.SECRET_KEY;
+
 if (!SECRET_KEY) {
   console.error("SECRET_KEY is missing. Please set it in your .env file.");
   process.exit(1);
@@ -100,12 +101,25 @@ const loginUser = async (req, res) => {
       { expiresIn: "1h" }
     );
 
+    console.log("INITIAL VALUE OF THE TOKEN", token);
+
     console.log("Login successful for user:", email);
+    res.cookie("auth_token", token, {
+      httpOnly: true,
+      secure: false,
+      maxAge: 3600000,
+    });
+
     res.status(200).json({ token, user });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).send("Internal Server Error");
   }
+};
+
+const logoutUser = async (req, res) => {
+  res.clearCookie("auth_token");
+  res.json({ message: "Logged out successfully" });
 };
 
 const checkEmailNotInUse = async (email) => {
@@ -127,5 +141,6 @@ module.exports = {
   getAllUsers,
   registerUser,
   loginUser,
+  logoutUser,
   checkEmailNotInUse,
 };
