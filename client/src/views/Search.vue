@@ -1,7 +1,6 @@
 <template>
   <div>
     <v-container>
-      <!-- Search and Select -->
       <v-text-field
         v-model="search"
         label="Search"
@@ -20,7 +19,6 @@
         @change="fetchSections"
       ></v-select>
 
-      <!-- Datatable -->
       <v-data-table
         :items="sections"
         :options.sync="options"
@@ -35,7 +33,6 @@
           </v-toolbar>
         </template>
 
-        <!-- Row Slots -->
         <template v-slot:[`item.address`]="{ item }">
           <span @click="openModal(item)" class="clickable">{{
             item.address
@@ -68,15 +65,16 @@
         </template>
       </v-data-table>
 
-      <!-- Modal -->
       <v-dialog v-model="isModalOpen" max-width="600px">
         <v-card>
           <v-card-title>
-            Section Details
-            <v-spacer></v-spacer>
-            <v-btn icon @click="isModalOpen = false">
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
+            <div class="flex">
+              <h2>Section Details</h2>
+              <v-spacer></v-spacer>
+              <v-btn icon @click="isModalOpen = false" class="btnClose">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </div>
           </v-card-title>
           <v-card-text>
             <p><strong>Address:</strong> {{ selectedSection.address }}</p>
@@ -85,6 +83,19 @@
             <p><strong>Number:</strong> {{ selectedSection.number }}</p>
           </v-card-text>
           <v-card-actions>
+            <v-snackbar v-model="showSnackbar" :timeout="3000" color="red">
+              Already observing another section.
+            </v-snackbar>
+
+            <v-btn
+              color="primary"
+              text
+              @click="handleObserveClick"
+              :disabled="user.observe"
+            >
+              Observe Section
+            </v-btn>
+
             <v-btn color="primary" text @click="isModalOpen = false"
               >Close</v-btn
             >
@@ -98,8 +109,15 @@
 <script>
 import axios from "../axios";
 import debounce from "lodash/debounce";
+import { inject } from "vue";
 
 export default {
+  setup() {
+    const user = inject("user");
+    return {
+      user,
+    };
+  },
   data() {
     return {
       search: "",
@@ -119,11 +137,19 @@ export default {
         { text: "Location", value: "location" },
         { text: "Number", value: "number" },
       ],
-      isModalOpen: false, // Modal visibility
-      selectedSection: {}, // Data for selected row
+      isModalOpen: false,
+      selectedSection: {},
+      showSnackbar: false,
     };
   },
   methods: {
+    handleObserveClick() {
+      if (this.user.observe) {
+        this.showSnackbar = true;
+      } else {
+        this.observeSection();
+      }
+    },
     async fetchSections() {
       this.loading = true;
       try {
@@ -151,6 +177,22 @@ export default {
       this.selectedSection = item;
       this.isModalOpen = true;
     },
+    async observeSection() {
+      try {
+        const sectionId = this.selectedSection.id;
+        const userId = this.user.id;
+
+        await axios.patch(`/composed/${sectionId}/observe`, { userId });
+
+        this.user.observe = true;
+
+        this.isModalOpen = false;
+        this.fetchSections();
+      } catch (error) {
+        console.error("Error observing section:", error);
+        alert("Failed to observe section. Please try again.");
+      }
+    },
   },
   watch: {
     "options.page": "fetchSections",
@@ -166,7 +208,7 @@ export default {
   margin-bottom: 16px;
 }
 .v-data-table-header {
-  background-color: #3f51b5;
+  background-color: var(--var--dark-blue);
   color: white;
 }
 .padding {
@@ -182,9 +224,20 @@ export default {
 }
 .clickable {
   cursor: pointer;
-  color: #1976d2;
+  color: var(--var--dark-blue);
 }
 .clickable:hover {
   text-decoration: underline;
+}
+
+.flex {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  width: 100%;
+}
+.btnClose {
+  background-color: var(--var--close-red);
+  color: var(--var--light-white);
 }
 </style>

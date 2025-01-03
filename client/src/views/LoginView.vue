@@ -108,7 +108,6 @@ export default {
           },
         });
 
-        // Salvează token-ul în localStorage
         const token = response.data?.token;
         if (token && typeof token === "string" && token.length > 0) {
           try {
@@ -135,8 +134,10 @@ export default {
 
         // Actualizează datele utilizatorului
         const userData = response.data?.user || {};
+        console.log("USER DATA : ", userData);
         this.user.email = userData.email || "N/A";
         this.user.role = userData.role || "guest";
+        this.user.id = userData.id || "";
 
         console.log("user in login", this.user);
 

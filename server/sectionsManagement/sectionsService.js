@@ -34,29 +34,26 @@ const getAllSections = async (req, res) => {
       }
     }
 
-    // Obținem totalul înainte de paginare
+    // Fetch all documents to filter out those with status "taken" and include documents missing the status field
     const snapshot = await query.get();
-    const total = snapshot.docs.length;
 
-    // Aplicați paginarea
-    const sections = [];
-    let lastDoc = null;
+    const filteredSections = snapshot.docs.filter(
+      (doc) => !doc.data().status || doc.data().status !== "taken"
+    );
 
-    if (page > 1) {
-      const skipDocs = (page - 1) * itemsPerPageNum;
-      const skippedDocs = await query.limit(skipDocs).get();
-      lastDoc = skippedDocs.docs[skippedDocs.docs.length - 1];
-    }
+    const total = filteredSections.length;
 
-    if (lastDoc) {
-      query = query.startAfter(lastDoc);
-    }
+    // Apply pagination manually
+    const startIndex = (page - 1) * itemsPerPageNum;
+    const paginatedSections = filteredSections.slice(
+      startIndex,
+      startIndex + itemsPerPageNum
+    );
 
-    const paginatedSnapshot = await query.limit(itemsPerPageNum).get();
-
-    paginatedSnapshot.forEach((doc) => {
-      sections.push({ id: doc.id, ...doc.data() });
-    });
+    const sections = paginatedSections.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
     res.json({ items: sections, total });
   } catch (error) {
