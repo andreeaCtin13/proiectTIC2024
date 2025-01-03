@@ -185,6 +185,9 @@ export default {
         await axios.patch(`/composed/${sectionId}/observe`, { userId });
 
         this.user.observe = true;
+        this.user.sectionObserved = {
+          ...this.selectedSection,
+        };
 
         this.isModalOpen = false;
         this.fetchSections();
@@ -203,7 +206,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 .mb-4 {
   margin-bottom: 16px;
 }
@@ -225,9 +228,10 @@ export default {
 .clickable {
   cursor: pointer;
   color: var(--var--dark-blue);
+  transition: 0.3s;
 }
 .clickable:hover {
-  text-decoration: underline;
+  color: var(--var--close-red);
 }
 
 .flex {

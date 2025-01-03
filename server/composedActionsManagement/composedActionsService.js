@@ -1,4 +1,5 @@
 const db = require("../db_config/dbInit");
+const { FieldValue } = require("firebase-admin/firestore");
 
 const observeSection = async (req, res) => {
   const { sectionId } = req.params;
@@ -52,6 +53,46 @@ const observeSection = async (req, res) => {
   }
 };
 
+const releaseSection = async (req, res) => {
+  const { sectionId, userId } = req.body;
+  console.log("SECTION ID");
+
+  if (!sectionId || !userId) {
+    return res.status(400).send("Section ID and User ID are required");
+  }
+
+  try {
+    await db.runTransaction(async (transaction) => {
+      const sectionRef = db.collection("sections").doc(sectionId);
+      const sectionDoc = await transaction.get(sectionRef);
+
+      if (!sectionDoc.exists) {
+        throw new Error("Section not found");
+      }
+
+      const userRef = db.collection("users").doc(userId);
+      const userDoc = await transaction.get(userRef);
+
+      if (!userDoc.exists) {
+        throw new Error("User not found");
+      }
+
+      transaction.update(sectionRef, { status: "available" });
+
+      transaction.update(userRef, {
+        observe: false,
+        sectionObserved: FieldValue.delete(),
+      });
+    });
+
+    res.status(200).send("Section released and user updated successfully");
+  } catch (error) {
+    console.error("Error releasing section:", error);
+    res.status(500).send(error.message || "Internal Server Error");
+  }
+};
+
 module.exports = {
   observeSection,
+  releaseSection,
 };

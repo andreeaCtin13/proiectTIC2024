@@ -4,6 +4,7 @@ import LoginView from "../views/LoginView.vue";
 import AdministratorHomepage from "../views/AdministratorHomeView.vue";
 import ObserverHomepage from "../views/ObserverHomeView.vue";
 import Search from "../views/Search.vue";
+import Status from "../views/Status.vue";
 const routes = [
   {
     path: "/register",
@@ -29,6 +30,11 @@ const routes = [
     path: "/search",
     name: "search",
     component: Search,
+  },
+  {
+    path: "/current-status",
+    name: "current-status",
+    component: Status,
   },
 ];
 

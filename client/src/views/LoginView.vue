@@ -122,26 +122,25 @@ export default {
           throw new Error("No valid token received from server");
         }
 
-        // Mesaj de succes
         toastr.success("Login successful!", "Success");
 
-        // Asigură-te că user-ul există
         if (!this.user) {
           console.error("User context is not provided");
           toastr.error("Application error: User context is missing", "Error");
           return;
         }
 
-        // Actualizează datele utilizatorului
         const userData = response.data?.user || {};
         console.log("USER DATA : ", userData);
         this.user.email = userData.email || "N/A";
         this.user.role = userData.role || "guest";
         this.user.id = userData.id || "";
-
+        this.user.observe = userData.observe || false;
+        if (userData.observe) {
+          this.user.sectionObserved = { ...userData.sectionObserved };
+        }
         console.log("user in login", this.user);
 
-        // Navigare pe baza rolului
         const route =
           this.user.role === "observer"
             ? "/observer-homepage"
