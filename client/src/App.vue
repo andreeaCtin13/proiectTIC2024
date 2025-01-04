@@ -1,7 +1,7 @@
 <template>
   <v-app class="app full-space">
     <v-main>
-      <navigation v-if="isLoggedIn" />
+      <navigation v-if="isLoggedIn" @logout="logout" />
       <router-view />
     </v-main>
   </v-app>
@@ -29,9 +29,15 @@ export default {
         user.value.role !== null
     );
 
+    const logout = () => {
+      user.value = { role: null }; // Resetează starea utilizatorului
+      console.log("User logged out:", user.value);
+    };
+
     return {
       user,
       isLoggedIn,
+      logout,
     };
   },
 };

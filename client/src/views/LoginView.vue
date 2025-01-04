@@ -112,7 +112,6 @@ export default {
         if (token && typeof token === "string" && token.length > 0) {
           try {
             sessionStorage.setItem("auth_token", token);
-            console.log("Token saved:", token);
           } catch (storageError) {
             console.error("Failed to save token:", storageError);
             throw new Error("Failed to store authentication token");

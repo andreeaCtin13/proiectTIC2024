@@ -32,24 +32,29 @@
         >Observer Homepage</router-link
       >
       |
-      <router-link to="/" class="nav-link" @click="logout">Logout</router-link>
+      <router-link to="/" class="nav-link" @click.prevent="handleLogout"
+        >Logout</router-link
+      >
     </div>
   </v-app-bar>
 </template>
 
 <script>
 import { inject } from "vue";
+import { useRouter } from "vue-router";
 
 export default {
   name: "Navigation",
-  setup() {
+  setup(_, { emit }) {
     const user = inject("user");
-    return { user };
-  },
-  logout() {
-    const user = inject("user");
-    this.user = null;
-    return { user };
+    const router = useRouter();
+
+    const handleLogout = () => {
+      emit("logout");
+      router.push("/");
+    };
+
+    return { user, handleLogout };
   },
 };
 </script>
