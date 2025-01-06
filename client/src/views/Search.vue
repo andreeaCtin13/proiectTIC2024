@@ -72,7 +72,7 @@
               <h2>Section Details</h2>
               <v-spacer></v-spacer>
               <v-btn icon @click="isModalOpen = false" class="btnClose">
-                <v-icon>mdi-close</v-icon>
+                <v-icon class="x-icon">mdi-close</v-icon>
               </v-btn>
             </div>
           </v-card-title>
@@ -206,7 +206,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .mb-4 {
   margin-bottom: 16px;
 }
@@ -242,6 +242,9 @@ export default {
 }
 .btnClose {
   background-color: var(--var--close-red);
+}
+
+.x-icon {
   color: var(--var--light-white);
 }
 </style>

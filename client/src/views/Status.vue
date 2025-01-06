@@ -130,7 +130,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .upsideText {
   font-size: 0.8rem;
 }

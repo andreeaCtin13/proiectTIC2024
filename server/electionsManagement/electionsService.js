@@ -1,83 +1,83 @@
 const db = require("../db_config/dbInit");
 
-const getAllElections = (req, res) => {
-  res.send("you want to get all sections");
+const getAllElections = async (req, res) => {
+  try {
+    const electionsSnapshot = await db.collection("elections").get();
+    const elections = electionsSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    res.status(200).json(elections);
+  } catch (error) {
+    console.error("Error fetching elections:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
-const addElections = async (req, res) => {
-  //   const { email, password } = req.body;
+const addElection = async (req, res) => {
+  const { isValid, observingStartDate, observingEndDate, name } = req.body;
 
-  //   const newUser = {
-  //     email: email,
-  //     password: password,
-  //   };
+  if (!name || !observingStartDate || !observingEndDate) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
 
-  //   try {
-  //     const addedUser = await db.collection("users").add(newUser);
+  try {
+    const newElectionRef = await db.collection("elections").add({
+      isValid: isValid || false,
+      observingStartDate,
+      observingEndDate,
+      name,
+    });
 
-  //     const userDoc = await addedUser.get();
-  //     const userData = userDoc.data();
+    const newElection = {
+      id: newElectionRef.id,
+      isValid,
+      observingStartDate,
+      observingEndDate,
+      name,
+    };
 
-  //     console.log("New user ID:", addedUser.id);
-  //     console.log("New user data:", userData);
-
-  res.status(201).json({
-    message: "hahah",
-  });
-  //   } catch (error) {
-  //     res.status(500).send(JSON.stringify(error));
-  //   }
+    res.status(201).json(newElection);
+  } catch (error) {
+    console.error("Error adding election:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
-// const loginUser = async (req, res) => {
-//   const { email, password } = req.body;
 
-//   const userToAuthenticate = {
-//     email: email,
-//     password: password,
-//   };
+const deleteElection = async (req, res) => {
+  const { id } = req.params;
 
-//   let auth = false;
+  try {
+    await db.collection("elections").doc(id).delete();
+    res.status(200).json({ message: "Election deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting election:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+const updateElection = async (req, res) => {
+  const { id } = req.params;
+  const { isValid, observingStartDate, observingEndDate, name } = req.body;
 
-//   const querySnapshot = await db
-//     .collection("users")
-//     .where("email", "==", userToAuthenticate.email)
-//     .limit(1)
-//     .get();
+  try {
+    const electionRef = db.collection("elections").doc(id);
+    await electionRef.update({
+      isValid,
+      observingStartDate,
+      observingEndDate,
+      name,
+    });
 
-//   querySnapshot.forEach((element) => {
-//     console.log("A user matching the email address has been found.");
-//     const userData = element.data();
-
-//     if (userData.password === userToAuthenticate.password) auth = true;
-//   });
-
-//   if (auth) {
-//     res.status(200).send("sampleToken");
-//   } else {
-//     res.status(401).send("Unauthorized");
-//   }
-// };
-
-// const checkEmailNotInUse = async (email) => {
-//   try {
-//     const usersRef = db.collection("users");
-//     const querySnapshot = await usersRef
-//       .where("email", "==", email)
-//       .limit(1)
-//       .get();
-
-//     if (!querySnapshot.empty) {
-//       return Promise.reject("E-mail already in use");
-//       // Email exists in the collection
-//     }
-
-//     return true;
-//   } catch (error) {
-//     console.error("Error checking email:", error);
-//     throw error; // or handle it as you see fit
-//   }
-// };
+    const updatedElection = (await electionRef.get()).data();
+    res.status(200).json({ id, ...updatedElection });
+  } catch (error) {
+    console.error("Error updating election:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 module.exports = {
   getAllElections,
-  addElections,
+  addElection,
+  deleteElection,
+  updateElection,
 };

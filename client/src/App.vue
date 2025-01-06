@@ -30,7 +30,7 @@ export default {
     );
 
     const logout = () => {
-      user.value = { role: null }; // Resetează starea utilizatorului
+      user.value = { role: null };
       console.log("User logged out:", user.value);
     };
 

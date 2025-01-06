@@ -141,7 +141,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .title {
   color: var(--var--light-black);
   font-size: 8rem;
