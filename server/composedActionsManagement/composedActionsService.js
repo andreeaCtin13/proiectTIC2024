@@ -25,11 +25,21 @@ const observeSection = async (req, res) => {
       const userRef = db.collection("users").doc(userId);
       const userDoc = await transaction.get(userRef);
 
-      if (!userDoc.exists) {
-        throw new Error("User not found");
+      if (!userDoc.exists || !userDoc.data().email) {
+        throw new Error("User not found or user does not have an email");
       }
 
       transaction.update(sectionRef, { status: "taken" });
+
+      const userEmail = userDoc.data().email;
+      const checkInTime = new Date().toISOString();
+
+      const observingHistoryRef = db.collection("observing_history").doc();
+      await transaction.set(observingHistoryRef, {
+        sectionId,
+        checkInTime,
+        observerEmail: userEmail,
+      });
 
       const sectionData = sectionDoc.data();
       const sectionObserved = {
@@ -55,7 +65,6 @@ const observeSection = async (req, res) => {
 
 const releaseSection = async (req, res) => {
   const { sectionId, userId } = req.body;
-  console.log("SECTION ID");
 
   if (!sectionId || !userId) {
     return res.status(400).send("Section ID and User ID are required");
@@ -73,12 +82,44 @@ const releaseSection = async (req, res) => {
       const userRef = db.collection("users").doc(userId);
       const userDoc = await transaction.get(userRef);
 
-      if (!userDoc.exists) {
-        throw new Error("User not found");
+      if (!userDoc.exists || !userDoc.data().email) {
+        throw new Error("User not found or user does not have an email");
       }
 
-      transaction.update(sectionRef, { status: "available" });
+      const observingHistoryRef = db
+        .collection("observing_history")
+        .where("sectionId", "==", sectionId)
+        .where("observerEmail", "==", userDoc.data().email);
+      const historySnapshot = await observingHistoryRef.get();
 
+      if (historySnapshot.empty) {
+        throw new Error(
+          "No check-in record found for this section and observer."
+        );
+      }
+
+      let checkInTime;
+      let checkoutTime;
+
+      historySnapshot.forEach((doc) => {
+        checkInTime = doc.data().checkInTime;
+        checkoutTime = doc.data().checkoutTime;
+      });
+
+      if (checkoutTime) {
+        throw new Error("Section has already been checked out.");
+      }
+
+      const currentTime = new Date().toISOString();
+      if (!checkInTime) {
+        throw new Error("Cannot checkout before check-in.");
+      }
+
+      historySnapshot.forEach((doc) => {
+        transaction.update(doc.ref, { checkoutTime: currentTime });
+      });
+
+      transaction.update(sectionRef, { status: "available" });
       transaction.update(userRef, {
         observe: false,
         sectionObserved: FieldValue.delete(),

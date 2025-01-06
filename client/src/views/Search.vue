@@ -182,7 +182,10 @@ export default {
         const sectionId = this.selectedSection.id;
         const userId = this.user.id;
 
-        await axios.patch(`/composed/${sectionId}/observe`, { userId });
+        await axios.patch(`/composed/${sectionId}/observe`, {
+          userId,
+          observerEmail: this.user.email,
+        });
 
         this.user.observe = true;
         this.user.sectionObserved = {
