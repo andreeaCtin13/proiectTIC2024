@@ -1,10 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
-import RegisterView from "../views/RegisterView.vue";
-import LoginView from "../views/LoginView.vue";
-import AdministratorHomepage from "../views/AdministratorHomeView.vue";
-import ObserverHomepage from "../views/ObserverHomeView.vue";
-import Search from "../views/Search.vue";
-import Status from "../views/Status.vue";
+import RegisterView from "../views/general/RegisterView.vue";
+import LoginView from "../views/general/LoginView.vue";
+import AdministratorHomepage from "../views/admin/AdministratorHomeView.vue";
+import ObserverHomepage from "../views/observer/ObserverHomeView.vue";
+import Search from "../views/observer/Search.vue";
+import Status from "../views/observer/Status.vue";
+import StatisticsView from "../views/admin/StatisticsView.vue";
 const routes = [
   {
     path: "/register",
@@ -35,6 +36,11 @@ const routes = [
     path: "/current-status",
     name: "current-status",
     component: Status,
+  },
+  {
+    path: "/stats",
+    name: "statistics",
+    component: StatisticsView,
   },
 ];
 

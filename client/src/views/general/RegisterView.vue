@@ -65,7 +65,7 @@
   </v-app>
 </template>
 <script>
-import axios from "../axios";
+import axios from "../../axios";
 import toastr from "toastr";
 import "toastr/build/toastr.min.css";
 import { useRouter } from "vue-router";

@@ -9,7 +9,9 @@ const port = 3000;
 const userRouter = require("./userManagement/userRouter");
 const sectionsRouter = require("./sectionsManagement/sectionsRouter");
 const electionsRouter = require("./electionsManagement/electionsRouter");
+const observingHistoryRouter = require("./observingHistoryManagement/observingHistoryRouter");
 const composedRouter = require("./composedActionsManagement/composedActionsRouter");
+
 const router = express.Router();
 const db = require("./db_config/dbInit");
 
@@ -30,6 +32,7 @@ app.use(userRouter);
 app.use(sectionsRouter);
 app.use(electionsRouter);
 app.use(composedRouter);
+app.use(observingHistoryRouter);
 
 const generateSections = async (count = 50) => {
   try {

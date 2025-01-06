@@ -10,6 +10,12 @@
         v-if="user && user.role === 'observer'"
         >Search for a section</router-link
       >
+      <router-link
+        to="/stats"
+        v-if="user && user.role === 'admin'"
+        class="nav-link"
+        >Statistics</router-link
+      >
       <span v-if="user && user.role === 'observer'"> | </span>
       <router-link
         to="/current-status"
