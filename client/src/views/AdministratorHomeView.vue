@@ -264,6 +264,7 @@ export default {
   border-radius: 3rem;
   font-size: 1.3rem;
   transition: 0.3s;
+  padding: 0 0.5rem;
   border: 3px solid var(--var--medium-blue);
 }
 
@@ -307,6 +308,7 @@ export default {
 }
 
 .badBtn {
+  border: none;
   background-color: var(--var--close-red);
   color: var(--var--light-white);
 }
