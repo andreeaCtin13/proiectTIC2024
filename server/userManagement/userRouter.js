@@ -15,5 +15,5 @@ router.post(
   userService.registerUser
 );
 router.post("/login", loginValidationRules(), validate, userService.loginUser);
-
+router.put("/saveElections", userService.saveSelections);
 module.exports = router;

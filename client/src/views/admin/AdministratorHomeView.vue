@@ -20,7 +20,6 @@
         <i class="fas fa-plus-circle"></i> Adauga o noua alegere
       </button>
 
-      <!-- Modal pentru adăugarea alegerii -->
       <v-dialog v-model="dialog" max-width="500px">
         <v-card>
           <v-card-title>
@@ -64,7 +63,6 @@
         </v-card>
       </v-dialog>
 
-      <!-- Modal pentru editare -->
       <v-dialog v-model="editDialog" max-width="500px">
         <v-card>
           <v-card-title>
@@ -108,7 +106,7 @@
         </v-card>
       </v-dialog>
 
-      <div v-if="elections.length">
+      <div v-if="elections.length" class="containerElections">
         <div
           v-for="election in elections"
           :key="election.id"
@@ -278,13 +276,20 @@ export default {
   color: white;
 }
 
+.containerElections {
+  display: flex;
+  margin: 2rem 0;
+  gap: 1rem;
+}
+
 .elections {
   margin-top: 2rem;
 }
 
 .election-card {
   border: 1px solid #ccc;
-  padding: 1rem;
+  background-color: var(--var--light-white);
+  padding: 2rem;
   margin-bottom: 1rem;
   border-radius: 5px;
 }
@@ -311,5 +316,11 @@ export default {
   border: none;
   background-color: var(--var--close-red);
   color: var(--var--light-white);
+}
+
+@media screen and (max-width: 900px) {
+  .containerElections {
+    flex-direction: column;
+  }
 }
 </style>

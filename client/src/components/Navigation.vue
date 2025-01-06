@@ -16,7 +16,8 @@
         class="nav-link"
         >Statistics</router-link
       >
-      |
+      <span v-if="user && user.role === 'observer'">|</span>
+
       <router-link
         to="/current-status"
         class="nav-link"

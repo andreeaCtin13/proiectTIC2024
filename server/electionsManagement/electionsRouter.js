@@ -6,5 +6,5 @@ router.get("/elections", electionsService.getAllElections);
 router.post("/elections", electionsService.addElection);
 router.put("/elections/:id", electionsService.updateElection);
 router.delete("/elections/:id", electionsService.deleteElection);
-
+router.get("/validElections", electionsService.getValidElections);
 module.exports = router;

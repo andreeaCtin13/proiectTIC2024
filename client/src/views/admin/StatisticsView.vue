@@ -193,6 +193,6 @@ export default {
 }
 
 .containerStats {
-  padding: 10rem 0;
+  padding: 3rem 0 0 0;
 }
 </style>

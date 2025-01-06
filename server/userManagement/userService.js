@@ -137,10 +137,39 @@ const checkEmailNotInUse = async (email) => {
   }
 };
 
+const saveSelections = async (req, res) => {
+  const { userId, elections } = req.body;
+
+  console.log(userId);
+  console.log(elections);
+  if (!userId || !elections || !Array.isArray(elections)) {
+    return res.status(400).send("User ID and elections array are required");
+  }
+
+  try {
+    const userRef = db.collection("users").doc(userId);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      return res.status(404).send("User not found");
+    }
+
+    await userRef.update({
+      electionsAssociated: elections,
+    });
+
+    res.status(200).send("Selections updated successfully");
+  } catch (error) {
+    console.error("Error saving selections:", error);
+    res.status(500).send(error.message || "Internal Server Error");
+  }
+};
+
 module.exports = {
   getAllUsers,
   registerUser,
   loginUser,
   logoutUser,
   checkEmailNotInUse,
+  saveSelections,
 };

@@ -75,9 +75,32 @@ const updateElection = async (req, res) => {
   }
 };
 
+const getValidElections = async (req, res) => {
+  try {
+    const snapshot = await db.collection("elections").get();
+    const elections = [];
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.isValid) {
+        elections.push({
+          id: doc.id,
+          ...data,
+        });
+      }
+    });
+
+    res.status(200).json(elections);
+  } catch (error) {
+    console.error("Error fetching elections:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
 module.exports = {
   getAllElections,
   addElection,
   deleteElection,
   updateElection,
+  getValidElections,
 };
