@@ -218,7 +218,7 @@ export default {
   color: white;
 }
 .padding {
-  margin: 4rem 0;
+  margin: 2rem 0;
 }
 .table {
   margin-bottom: 2rem;

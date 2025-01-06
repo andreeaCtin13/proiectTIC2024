@@ -1,91 +1,93 @@
 <template>
-  <v-container>
-    <v-row>
-      <v-col cols="12" md="6">
-        <v-card>
-          <v-card-title>Total Observations</v-card-title>
-          <v-card-text>
-            <v-progress-linear
-              :value="totalObservations"
-              :max="maxObservations"
-              color="primary"
-              height="20"
-            />
-            <div class="text-h5">{{ totalObservations }} Observations</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
+  <div>
+    <v-container>
+      <v-row class="containerStats">
+        <v-col cols="12" md="6">
+          <v-card>
+            <v-card-title>Total Observations</v-card-title>
+            <v-card-text>
+              <v-progress-linear
+                :value="totalObservations"
+                :max="maxObservations"
+                color="primary"
+                height="20"
+              />
+              <div class="text-h5">{{ totalObservations }} Observations</div>
+            </v-card-text>
+          </v-card>
+        </v-col>
 
-      <v-col cols="12" md="6">
-        <v-card>
-          <v-card-title>Average Duration</v-card-title>
-          <v-card-text>
-            <v-progress-linear
-              :value="averageDuration"
-              :max="maxDuration"
-              color="secondary"
-              height="20"
-            />
-            <div class="text-h5">{{ averageDuration }} minutes</div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+        <v-col cols="12" md="6">
+          <v-card>
+            <v-card-title>Average Duration</v-card-title>
+            <v-card-text>
+              <v-progress-linear
+                :value="averageDuration"
+                :max="maxDuration"
+                color="secondary"
+                height="20"
+              />
+              <div class="text-h5">{{ averageDuration }} minutes</div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
 
-    <v-row>
-      <v-col cols="12" md="12">
-        <v-card>
-          <v-card-title>Observations per Section</v-card-title>
-          <v-card-text>
-            <v-data-table
-              :headers="tableHeaders"
-              :items="sectionStats"
-              item-key="sectionId"
-              ><template v-slot:[`item?.number`]="{ item }">
-                <span>{{ item?.number || "N/A" }}</span>
-              </template>
-              <template v-slot:[`item.location`]="{ item }">
-                <span>{{ item.location || "N/A" }}</span>
-              </template>
-              <template v-slot:[`item.county`]="{ item }">
-                <span>{{ item.county || "N/A" }}</span>
-              </template>
-              <template v-slot:[`item.address`]="{ item }">
-                <span>{{ item.address || "N/A" }}</span>
-              </template>
-            </v-data-table>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+      <v-row>
+        <v-col cols="12" md="12">
+          <v-card>
+            <v-card-title>Observations per Section</v-card-title>
+            <v-card-text>
+              <v-data-table
+                :headers="tableHeaders"
+                :items="sectionStats"
+                item-key="sectionId"
+                ><template v-slot:[`item?.number`]="{ item }">
+                  <span>{{ item?.number || "N/A" }}</span>
+                </template>
+                <template v-slot:[`item.location`]="{ item }">
+                  <span>{{ item.location || "N/A" }}</span>
+                </template>
+                <template v-slot:[`item.county`]="{ item }">
+                  <span>{{ item.county || "N/A" }}</span>
+                </template>
+                <template v-slot:[`item.address`]="{ item }">
+                  <span>{{ item.address || "N/A" }}</span>
+                </template>
+              </v-data-table>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
 
-    <v-row>
-      <v-col cols="12" md="6">
-        <v-card>
-          <v-card-title>Most Observed Section</v-card-title>
-          <v-card-text>
-            <div class="text-h5">
-              {{ mostObservedSection.number }} -
-              {{ mostObservedSection.location }}
-            </div>
-            <div>
-              {{ mostObservedSection.county }} |
-              {{ mostObservedSection.address }}
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
+      <v-row>
+        <v-col cols="12" md="6">
+          <v-card>
+            <v-card-title>Most Observed Section</v-card-title>
+            <v-card-text>
+              <div class="text-h5">
+                {{ mostObservedSection.number }} -
+                {{ mostObservedSection.location }}
+              </div>
+              <div>
+                {{ mostObservedSection.county }} |
+                {{ mostObservedSection.address }}
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
 
-      <v-col cols="12" md="6">
-        <v-card>
-          <v-card-title>Section Observations</v-card-title>
-          <v-card-text>
-            <v-bar-chart :data="sectionChartData" :options="chartOptions" />
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+        <v-col cols="12" md="6">
+          <v-card>
+            <v-card-title>Section Observations</v-card-title>
+            <v-card-text>
+              <v-bar-chart :data="sectionChartData" :options="chartOptions" />
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+  </div>
 </template>
 
 <script>
@@ -190,7 +192,7 @@ export default {
   margin-bottom: 1rem;
 }
 
-.v-container {
+.containerStats {
   padding: 10rem 0;
 }
 </style>

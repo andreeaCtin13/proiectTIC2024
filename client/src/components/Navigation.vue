@@ -16,15 +16,14 @@
         class="nav-link"
         >Statistics</router-link
       >
-      <span v-if="user && user.role === 'observer'"> | </span>
+      |
       <router-link
         to="/current-status"
         class="nav-link"
         v-if="user && user.role === 'observer'"
         >Current status</router-link
       >
-      <span v-if="user && user.role === 'observer'"> | </span>
-
+      |
       <router-link
         to="/admin-homepage"
         v-if="user && user.role === 'admin'"
