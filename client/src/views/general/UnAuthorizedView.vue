@@ -16,11 +16,7 @@ export default {
   name: "UnauthorizedView",
   methods: {
     goBack() {
-      if (this.$router.options.history.state.back === "/unauthorized") {
-        this.$router.push("/administrator");
-      } else {
-        this.$router.push("/");
-      }
+      this.$router.push("/");
     },
   },
 };

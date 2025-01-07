@@ -1,157 +1,190 @@
 <template>
   <div class="administrator">
-    <h1 class="titleH1">Administrator Homepage</h1>
-    <button class="btn btnImportSectii" @click="uploadSections">
-      <i class="fas fa-file-import"></i> Import sectii votare
-    </button>
-    <input
-      type="file"
-      ref="fileInput"
-      style="display: none"
-      @change="handleFileUpload"
-    />
-    <br />
-    <br />
-    <h2>Gestioneaza alegerile din tara!</h2>
+    <div class="flexAdmin">
+      <div>
+        <h1 class="titleH1">Administrator Homepage</h1>
 
-    <div class="elections">
-      <h3>Alegeri</h3>
-      <button class="btn btnElections" @click="dialog = true">
-        <i class="fas fa-plus-circle"></i> Adauga o noua alegere
-      </button>
-
-      <v-dialog v-model="dialog" max-width="500px">
-        <v-card>
-          <v-card-title>
-            <span class="headline">Adauga o alegere</span>
-          </v-card-title>
-          <v-card-text>
-            <v-form ref="form" v-model="formValid">
-              <v-text-field
-                v-model="newElection.name"
-                label="Nume"
-                required
-              ></v-text-field>
-              <v-text-field
-                v-model="newElection.observingStartDate"
-                label="Data de start (YYYY-MM-DD)"
-                required
-              ></v-text-field>
-              <v-text-field
-                v-model="newElection.observingEndDate"
-                label="Data de sfarsit (YYYY-MM-DD)"
-                required
-              ></v-text-field>
-              <v-switch
-                v-model="newElection.isValid"
-                label="Este valida"
-              ></v-switch>
-            </v-form>
-          </v-card-text>
-          <v-card-actions>
+        <button class="btn btnImportSectii" @click="uploadSections">
+          <i class="fas fa-file-import"></i> Import sectii votare
+        </button>
+        <input
+          type="file"
+          ref="fileInput"
+          style="display: none"
+          @change="handleFileUpload"
+        />
+        <v-container class="mt-5 containerMail">
+          <h3>Send an email to all of the observers</h3>
+          <v-form ref="messageForm" v-model="formValid">
+            <v-textarea
+              v-model="message"
+              class="textAreaMail"
+              label="The message you want to be sent"
+              outlined
+              rows="5"
+              required
+            ></v-textarea>
             <button
               class="btn btnElections"
               :disabled="!formValid"
-              @click="submitElection"
+              @click="sendMessage"
             >
-              <i class="fas fa-save"></i> Salveaza
+              Send the message
             </button>
-            <button class="btn btnElections badBtn" @click="dialog = false">
-              <i class="fas fa-times"></i> Inchide
-            </button>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+          </v-form>
+        </v-container>
+      </div>
 
-      <v-dialog v-model="editDialog" max-width="500px">
-        <v-card>
-          <v-card-title>
-            <span class="headline">Editeaza alegerea</span>
-          </v-card-title>
-          <v-card-text>
-            <v-form ref="editForm" v-model="editFormValid">
-              <v-text-field
-                v-model="currentElection.name"
-                label="Nume"
-                required
-              ></v-text-field>
-              <v-text-field
-                v-model="currentElection.observingStartDate"
-                label="Data de start (YYYY-MM-DD)"
-                required
-              ></v-text-field>
-              <v-text-field
-                v-model="currentElection.observingEndDate"
-                label="Data de sfarsit (YYYY-MM-DD)"
-                required
-              ></v-text-field>
-              <v-switch
-                v-model="currentElection.isValid"
-                label="Este valida"
-              ></v-switch>
-            </v-form>
-          </v-card-text>
-          <v-card-actions>
-            <button
-              class="btn btnElections"
-              :disabled="!editFormValid"
-              @click="submitEditedElection"
-            >
-              <i class="fas fa-save"></i> Salveaza modificarile
-            </button>
-            <button class="btn btnElections badBtn" @click="editDialog = false">
-              <i class="fas fa-times"></i> Inchide
-            </button>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+      <div class="elections">
+        <h2>Organize the elections in your country!</h2>
+        <br />
+        <h3>The elections registered in the app</h3>
+        <br />
+        <button class="btn btnElections" @click="dialog = true">
+          <i class="fas fa-plus-circle"></i> Add a new election
+        </button>
 
-      <div v-if="elections.length" class="containerElections">
-        <div
-          v-for="election in elections"
-          :key="election.id"
-          class="election-card"
-        >
-          <h4>{{ election.name }}</h4>
-          <p>Start Observare: {{ election.observingStartDate }}</p>
-          <p>End Observare: {{ election.observingEndDate }}</p>
-          <p>Valid: {{ election.isValid ? "Da" : "Nu" }}</p>
-          <button class="btn btnElections" @click="openEditDialog(election)">
-            <i class="fas fa-edit"></i> Editeaza
-          </button>
-          <button
-            class="btn btnElections badBtn"
-            @click="deleteElection(election.id)"
+        <v-dialog v-model="dialog" max-width="500px">
+          <v-card>
+            <v-card-title>
+              <span class="headline">Add an election</span>
+            </v-card-title>
+            <v-card-text>
+              <v-form ref="form" v-model="formValid">
+                <v-text-field
+                  v-model="newElection.name"
+                  label="Name"
+                  required
+                ></v-text-field>
+                <v-text-field
+                  v-model="newElection.observingStartDate"
+                  label="Start Date (YYYY-MM-DD)"
+                  required
+                ></v-text-field>
+                <v-text-field
+                  v-model="newElection.observingEndDate"
+                  label="End Date (YYYY-MM-DD)"
+                  required
+                ></v-text-field>
+                <v-switch
+                  v-model="newElection.isValid"
+                  label="Is it valid?"
+                ></v-switch>
+              </v-form>
+            </v-card-text>
+            <v-card-actions>
+              <button
+                class="btn btnElections"
+                :disabled="!formValid"
+                @click="submitElection"
+              >
+                <i class="fas fa-save"></i> Save
+              </button>
+              <button class="btn btnElections badBtn" @click="dialog = false">
+                <i class="fas fa-times"></i> Close
+              </button>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <v-dialog v-model="editDialog" max-width="500px">
+          <v-card>
+            <v-card-title>
+              <span class="headline">Edit the election</span>
+            </v-card-title>
+            <v-card-text>
+              <v-form ref="editForm" v-model="editFormValid">
+                <v-text-field
+                  v-model="currentElection.name"
+                  label="Name"
+                  required
+                ></v-text-field>
+                <v-text-field
+                  v-model="currentElection.observingStartDate"
+                  label="Start Date (YYYY-MM-DD)"
+                  required
+                ></v-text-field>
+                <v-text-field
+                  v-model="currentElection.observingEndDate"
+                  label="End Date (YYYY-MM-DD)"
+                  required
+                ></v-text-field>
+                <v-switch
+                  v-model="currentElection.isValid"
+                  label="Is it valid?"
+                ></v-switch>
+              </v-form>
+            </v-card-text>
+            <v-card-actions>
+              <button
+                class="btn btnElections"
+                :disabled="!editFormValid"
+                @click="submitEditedElection"
+              >
+                <i class="fas fa-save"></i> Save the changes
+              </button>
+              <button
+                class="btn btnElections badBtn"
+                @click="editDialog = false"
+              >
+                <i class="fas fa-times"></i> Close
+              </button>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <v-dialog v-model="deleteDialog" max-width="500px">
+          <v-card>
+            <v-card-title>
+              <span class="headline">Confirm Delete</span>
+            </v-card-title>
+            <v-card-text>
+              Are you sure you want to delete the election:
+              <strong>{{ deleteElectionName }}</strong
+              >?
+            </v-card-text>
+            <v-card-actions>
+              <button class="btn btnElections badBtn" @click="confirmDelete">
+                <i class="fas fa-trash-alt"></i> Yes, Delete
+              </button>
+              <button class="btn btnElections" @click="cancelDelete">
+                <i class="fas fa-times"></i> Cancel
+              </button>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <div v-if="elections.length" class="containerElections">
+          <div
+            v-for="election in elections"
+            :key="election.id"
+            class="election-card"
           >
-            <i class="fas fa-trash-alt"></i> Sterge
-          </button>
+            <h4>{{ election.name }}</h4>
+            <p>Start Observing: {{ election.observingStartDate }}</p>
+            <p>End Observing: {{ election.observingEndDate }}</p>
+            <p>Valid: {{ election.isValid ? "Yes" : "No" }}</p>
+            <div class="buttonsSection">
+              <button
+                class="btn btnElections"
+                @click="openEditDialog(election)"
+              >
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <button
+                class="btn btnElections badBtn"
+                @click="openDeleteDialog(election)"
+              >
+                <i class="fas fa-trash-alt"></i> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+        <div v-else>
+          <p>There is no registered election.</p>
         </div>
       </div>
-      <div v-else>
-        <p>Nu exista alegeri inregistrate.</p>
-      </div>
     </div>
-
-    <v-container class="mt-5">
-      <h3>Trimite mesaj tuturor observatorilor</h3>
-      <v-form ref="messageForm" v-model="formValid">
-        <v-textarea
-          v-model="message"
-          label="Mesajul către observatori"
-          outlined
-          rows="5"
-          required
-        ></v-textarea>
-        <v-btn
-          :disabled="!formValid"
-          color="primary"
-          class="mt-3"
-          @click="sendMessage"
-        >
-          Trimite mesajul
-        </v-btn>
-      </v-form>
-    </v-container>
 
     <v-snackbar v-model="snackbar" :color="snackbarColor" top>
       {{ snackbarMessage }}
@@ -173,6 +206,9 @@ export default {
       formValid: false,
       editFormValid: false,
       message: "",
+      deleteDialog: false,
+      deleteElectionId: null,
+      deleteElectionName: "",
       newElection: {
         name: "",
         observingStartDate: "",
@@ -275,6 +311,29 @@ export default {
         this.snackbar = true;
       }
     },
+    openDeleteDialog(election) {
+      this.deleteElectionId = election.id;
+      this.deleteElectionName = election.name;
+      this.deleteDialog = true;
+    },
+    cancelDelete() {
+      this.deleteDialog = false;
+      this.deleteElectionId = null;
+      this.deleteElectionName = "";
+    },
+    async confirmDelete() {
+      try {
+        await axios.delete(`/elections/${this.deleteElectionId}`);
+        this.elections = this.elections.filter(
+          (election) => election.id !== this.deleteElectionId
+        );
+        this.showToast("Election deleted successfully!", "success");
+      } catch (error) {
+        this.showToast("Failed to delete election.", "error");
+      } finally {
+        this.deleteDialog = false;
+      }
+    },
   },
   mounted() {
     this.fetchElections();
@@ -284,7 +343,7 @@ export default {
 
 <style scoped>
 .administrator {
-  margin: 2rem;
+  margin: 4rem;
 }
 
 .titleH1 {
@@ -313,8 +372,13 @@ export default {
 
 .containerElections {
   display: flex;
+  flex-wrap: wrap;
   margin: 2rem 0;
-  gap: 1rem;
+  gap: 10px;
+}
+
+.v-input__detail {
+  display: none;
 }
 
 .elections {
@@ -323,6 +387,7 @@ export default {
 
 .election-card {
   border: 1px solid #ccc;
+  flex: 1 1 calc(30% - 10px);
   background-color: var(--var--light-white);
   padding: 2rem;
   margin-bottom: 1rem;
@@ -353,8 +418,26 @@ export default {
   color: var(--var--light-white);
 }
 
+.flexAdmin {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  gap: 2rem;
+  justify-content: space-around;
+}
+
+.buttonsSection {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  padding: 1rem 0 0 0;
+}
+
 @media screen and (max-width: 900px) {
   .containerElections {
+    flex-direction: column;
+  }
+  .flexAdmin {
     flex-direction: column;
   }
 }

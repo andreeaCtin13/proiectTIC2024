@@ -49,10 +49,13 @@
 import { inject } from "vue";
 import { useRouter } from "vue-router";
 import axios from "../axios";
+
 export default {
   name: "Navigation",
   setup(_, { emit }) {
+    // Injectăm contextul 'user' din App.vue
     const user = inject("user");
+
     const router = useRouter();
 
     const handleLogout = async () => {
