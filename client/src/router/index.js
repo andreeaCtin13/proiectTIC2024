@@ -6,6 +6,7 @@ import ObserverHomepage from "../views/observer/ObserverHomeView.vue";
 import Search from "../views/observer/Search.vue";
 import Status from "../views/observer/Status.vue";
 import StatisticsView from "../views/admin/StatisticsView.vue";
+import UnAuthorized from "../views/general/UnAuthorizedView.vue";
 const routes = [
   {
     path: "/register",
@@ -41,6 +42,11 @@ const routes = [
     path: "/stats",
     name: "statistics",
     component: StatisticsView,
+  },
+  {
+    path: "/unauthorized",
+    name: "unauthorized",
+    component: UnAuthorized,
   },
 ];
 

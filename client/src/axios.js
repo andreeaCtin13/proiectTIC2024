@@ -1,4 +1,5 @@
 import axios from "axios";
+import router from "./router/index";
 
 const instance = axios.create({
   baseURL: "http://localhost:3000",
@@ -14,5 +15,15 @@ instance.interceptors.request.use((config) => {
   console.log("TOKEN IN INTERCEPTORS ", token);
   return config;
 });
+
+instance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      router.push("/unauthorized");
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default instance;
