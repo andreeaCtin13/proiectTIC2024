@@ -127,8 +127,15 @@ const loginUser = async (req, res) => {
 };
 
 const logoutUser = async (req, res) => {
-  res.clearCookie("auth_token");
-  res.json({ message: "Logged out successfully" });
+  res.clearCookie("auth_token", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "Strict",
+  });
+
+  res
+    .status(200)
+    .json({ message: "Logged out successfully. Clear session storage." });
 };
 
 const checkEmailNotInUse = async (email) => {

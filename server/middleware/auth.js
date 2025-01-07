@@ -1,27 +1,27 @@
-require("dotenv").config();
-const SECRET_KEY = process.env.SECRET_KEY;
+const jwt = require("jsonwebtoken");
 
 const authenticate = (req, res, next) => {
   const token =
     req.cookies.auth_token || req.headers.authorization?.split(" ")[1];
 
-  console.log("Authorization Header:", req.headers.authorization);
-  console.log("Auth Cookie:", req.cookies.auth_token);
   if (!token) {
-    return res.status(401).send("Access denied. No token provided.");
+    return res.status(401).json({ message: "Token missing" });
   }
 
-  try {
-    const decoded = jwt.verify(token, SECRET_KEY);
-    console.log("decoded:", decoded);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    if (err.name === "TokenExpiredError") {
-      return res.status(401).json({ error: "Token has expired" });
+  jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
+    if (err) {
+      console.error("JWT verification failed:", err.message);
+      if (err.name === "TokenExpiredError") {
+        return res.status(401).json({ message: "Token expired" });
+      }
+      if (err.name === "JsonWebTokenError") {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+      return res.status(403).json({ message: "Token verification failed" });
     }
-    return res.status(401).json({ error: "Invalid token" });
-  }
-};
 
+    req.user = user;
+    next();
+  });
+};
 module.exports = authenticate;

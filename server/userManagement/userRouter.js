@@ -7,6 +7,7 @@ const {
 } = require("../validators/userValidator");
 const auth = require("../middleware/auth");
 const { validate } = require("../middleware/validate");
+
 router.get("/users", auth, userService.getAllUsers);
 router.post(
   "/users",
@@ -14,8 +15,10 @@ router.post(
   validate,
   userService.registerUser
 );
+
 router.post("/login", loginValidationRules(), validate, userService.loginUser);
-router.put("/saveElections", userService.saveSelections);
-router.post("/sendMail", userService.sendMessageToObservers);
+router.post("/logout", auth, userService.logoutUser);
+router.put("/saveElections", auth, userService.saveSelections);
+router.post("/sendMail", auth, userService.sendMessageToObservers);
 
 module.exports = router;

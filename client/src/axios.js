@@ -9,8 +9,9 @@ const instance = axios.create({
 instance.interceptors.request.use((config) => {
   const token = sessionStorage.getItem("auth_token");
   if (token) {
-    config.headers.authorization = `${token}`;
+    config.headers.authorization = `Bearer ${token}`;
   }
+  console.log("TOKEN IN INTERCEPTORS ", token);
   return config;
 });
 

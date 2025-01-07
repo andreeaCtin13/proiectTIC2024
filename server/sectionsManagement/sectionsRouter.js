@@ -7,19 +7,11 @@ const multer = require("multer");
 const fs = require("fs");
 const upload = multer({ dest: "uploads/" });
 
-router.get(
-  "/sections",
-  // auth,
-  sectionsService.getAllSections
-);
-router.post(
-  "/sections",
-  // auth,
-  sectionsService.addSections
-);
+router.get("/sections", auth, sectionsService.getAllSections);
+router.post("/sections", auth, sectionsService.addSections);
 router.post(
   "/upload-sections",
-  // auth,
+  auth,
   upload.single("file"),
   async (req, res, next) => {
     try {

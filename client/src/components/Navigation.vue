@@ -48,16 +48,25 @@
 <script>
 import { inject } from "vue";
 import { useRouter } from "vue-router";
-
+import axios from "../axios";
 export default {
   name: "Navigation",
   setup(_, { emit }) {
     const user = inject("user");
     const router = useRouter();
 
-    const handleLogout = () => {
-      emit("logout");
-      router.push("/");
+    const handleLogout = async () => {
+      try {
+        await axios.post("/logout", {
+          method: "POST",
+          credentials: "include",
+        });
+        sessionStorage.clear();
+        emit("logout");
+        router.push("/");
+      } catch (error) {
+        console.error("Logout failed:", error);
+      }
     };
 
     return { user, handleLogout };
