@@ -2,6 +2,7 @@ const db = require("../db_config/dbInit");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const nodemailer = require("nodemailer");
 
 const SECRET_KEY = process.env.SECRET_KEY;
 
@@ -9,6 +10,14 @@ if (!SECRET_KEY) {
   console.error("SECRET_KEY is missing. Please set it in your .env file.");
   process.exit(1);
 }
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
 
 const getAllUsers = (req, res) => {
   res.send("You want to get all users");
@@ -165,6 +174,47 @@ const saveSelections = async (req, res) => {
   }
 };
 
+const sendMessageToObservers = async (req, res) => {
+  const { message } = req.body;
+
+  if (!message) {
+    return res.status(400).send("Mesajul este obligatoriu");
+  }
+
+  try {
+    const usersSnapshot = await db
+      .collection("users")
+      .where("role", "==", "observer")
+      .get();
+
+    if (usersSnapshot.empty) {
+      return res
+        .status(404)
+        .send("Nu s-au găsit utilizatori cu rolul 'observer'");
+    }
+
+    const emails = [];
+    usersSnapshot.forEach((doc) => {
+      const user = doc.data();
+      emails.push(user.email);
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: emails.join(","),
+      subject: "Mesaj de la Administrator",
+      text: message,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).send("Mesajul a fost trimis cu succes");
+  } catch (error) {
+    console.error("Eroare la trimiterea mesajului:", error);
+    res.status(500).send("Eroare internă");
+  }
+};
+
 module.exports = {
   getAllUsers,
   registerUser,
@@ -172,4 +222,5 @@ module.exports = {
   logoutUser,
   checkEmailNotInUse,
   saveSelections,
+  sendMessageToObservers,
 };

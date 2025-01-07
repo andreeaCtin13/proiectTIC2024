@@ -132,6 +132,27 @@
       </div>
     </div>
 
+    <v-container class="mt-5">
+      <h3>Trimite mesaj tuturor observatorilor</h3>
+      <v-form ref="messageForm" v-model="formValid">
+        <v-textarea
+          v-model="message"
+          label="Mesajul către observatori"
+          outlined
+          rows="5"
+          required
+        ></v-textarea>
+        <v-btn
+          :disabled="!formValid"
+          color="primary"
+          class="mt-3"
+          @click="sendMessage"
+        >
+          Trimite mesajul
+        </v-btn>
+      </v-form>
+    </v-container>
+
     <v-snackbar v-model="snackbar" :color="snackbarColor" top>
       {{ snackbarMessage }}
     </v-snackbar>
@@ -147,10 +168,11 @@ export default {
       user: "Administrator",
       selectedFile: null,
       elections: [],
-      dialog: false, // Modal pentru adăugare
-      editDialog: false, // Modal pentru editare
+      dialog: false,
+      editDialog: false,
       formValid: false,
       editFormValid: false,
+      message: "",
       newElection: {
         name: "",
         observingStartDate: "",
@@ -239,6 +261,19 @@ export default {
       this.snackbarMessage = message;
       this.snackbarColor = color;
       this.snackbar = true;
+    },
+    async sendMessage() {
+      try {
+        await axios.post("/sendMail", { message: this.message });
+        this.snackbarMessage = "Mesajul a fost trimis cu succes!";
+        this.snackbarColor = "success";
+        this.message = "";
+      } catch (error) {
+        this.snackbarMessage = "Eroare la trimiterea mesajului.";
+        this.snackbarColor = "error";
+      } finally {
+        this.snackbar = true;
+      }
     },
   },
   mounted() {

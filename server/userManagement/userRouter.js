@@ -16,4 +16,6 @@ router.post(
 );
 router.post("/login", loginValidationRules(), validate, userService.loginUser);
 router.put("/saveElections", userService.saveSelections);
+router.post("/sendMail", userService.sendMessageToObservers);
+
 module.exports = router;
