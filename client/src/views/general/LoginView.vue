@@ -184,4 +184,13 @@ export default {
   margin: 2rem;
   font-size: 2rem;
 }
+@media screen and (max-width: 900px) {
+  .title {
+    font-size: 3.5rem;
+    margin: 0 0 1rem 0;
+  }
+  .title span {
+    font-size: 1.75rem;
+  }
+}
 </style>

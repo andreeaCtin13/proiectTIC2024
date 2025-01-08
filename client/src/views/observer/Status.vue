@@ -192,4 +192,14 @@ export default {
 .redirect-link:hover {
   color: var(--var--light-blue);
 }
+@media screen and (max-width: 900px) {
+  .status {
+    width: 80%;
+  }
+  .v-main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
 </style>

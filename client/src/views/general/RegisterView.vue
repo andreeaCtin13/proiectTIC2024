@@ -175,4 +175,14 @@ export default {
 .container {
   width: 90%;
 }
+
+@media screen and (max-width: 900px) {
+  .title {
+    font-size: 3.5rem;
+    margin: 0 0 1rem 0;
+  }
+  .title span {
+    font-size: 1.75rem;
+  }
+}
 </style>

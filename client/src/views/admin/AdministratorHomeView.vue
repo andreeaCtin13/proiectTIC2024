@@ -1,7 +1,7 @@
 <template>
   <div class="administrator">
     <div class="flexAdmin">
-      <div>
+      <div class="containerAdmin">
         <h1 class="titleH1">Administrator Homepage</h1>
 
         <button class="btn btnImportSectii" @click="uploadSections">
@@ -440,6 +440,19 @@ export default {
   .flexAdmin {
     flex-direction: column;
     gap: 0;
+  }
+  .election-card {
+    padding: 1rem;
+  }
+  .administrator {
+    margin: 2rem;
+    text-align: center;
+  }
+  .v-main {
+    padding: 0;
+  }
+  .titleH1 {
+    padding: 0;
   }
 }
 </style>
