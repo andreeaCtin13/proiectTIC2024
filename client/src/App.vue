@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import { ref, provide, computed, onMounted } from "vue";
+import { ref, provide, computed } from "vue";
 import Navigation from "./components/Navigation.vue";
 
 export default {
@@ -19,22 +19,8 @@ export default {
   setup() {
     const user = ref({ role: null });
 
-    const checkAuth = () => {
-      const token = sessionStorage.getItem("auth_token");
-      console.log("Token found:", token);
-
-      if (token) {
-        user.value = { role: "observer" };
-      } else {
-        user.value = { role: null };
-      }
-
-      console.log("User after checkAuth:", user.value);
-    };
-
-    onMounted(() => {
-      checkAuth();
-    });
+    provide("user", user);
+    console.log("User provided in App.vue:", user);
 
     const isLoggedIn = computed(
       () =>
@@ -47,8 +33,6 @@ export default {
       user.value = { role: null };
       console.log("User logged out:", user.value);
     };
-
-    provide("user", user);
 
     return {
       user,

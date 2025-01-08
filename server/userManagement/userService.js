@@ -71,14 +71,11 @@ const registerUser = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 };
-
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
-  console.log("Login attempt:", req.body);
-
   if (!email || !password) {
-    return res.status(400).send("Email and password are required");
+    return res.status(400).json({ message: "Email and password are required" });
   }
 
   try {
@@ -89,8 +86,7 @@ const loginUser = async (req, res) => {
       .get();
 
     if (userDocSnapshot.empty) {
-      console.log("User not found with email:", email);
-      return res.status(404).send("Invalid email or password");
+      return res.status(404).json({ message: "Invalid email or password" });
     }
 
     let user = null;
@@ -100,8 +96,7 @@ const loginUser = async (req, res) => {
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      console.log("Invalid password for email:", email);
-      return res.status(401).send("Invalid email or password");
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const token = jwt.sign(
@@ -110,9 +105,6 @@ const loginUser = async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    console.log("INITIAL VALUE OF THE TOKEN", token);
-
-    console.log("Login successful for user:", email);
     res.cookie("auth_token", token, {
       httpOnly: true,
       secure: false,
@@ -121,8 +113,7 @@ const loginUser = async (req, res) => {
 
     res.status(200).json({ token, user });
   } catch (error) {
-    console.error("Error during login:", error);
-    res.status(500).send("Internal Server Error");
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 

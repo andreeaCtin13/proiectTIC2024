@@ -2,7 +2,7 @@
   <div>
     <v-container>
       <v-row class="containerStats">
-        <v-col cols="12" md="6">
+        <v-col>
           <v-card>
             <v-card-title>Total Observations</v-card-title>
             <v-card-text>
@@ -16,8 +16,23 @@
             </v-card-text>
           </v-card>
         </v-col>
+        <v-col>
+          <v-card>
+            <v-card-title>Most Observed Section</v-card-title>
+            <v-card-text>
+              <div class="text-h5">
+                {{ mostObservedSection.number }} -
+                {{ mostObservedSection.location }}
+              </div>
+              <div>
+                {{ mostObservedSection.county }} |
+                {{ mostObservedSection.address }}
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
 
-        <v-col cols="12" md="6">
+        <v-col>
           <v-card>
             <v-card-title>Average Duration</v-card-title>
             <v-card-text>
@@ -55,33 +70,6 @@
                   <span>{{ item.address || "N/A" }}</span>
                 </template>
               </v-data-table>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-
-      <v-row>
-        <v-col cols="12" md="6">
-          <v-card>
-            <v-card-title>Most Observed Section</v-card-title>
-            <v-card-text>
-              <div class="text-h5">
-                {{ mostObservedSection.number }} -
-                {{ mostObservedSection.location }}
-              </div>
-              <div>
-                {{ mostObservedSection.county }} |
-                {{ mostObservedSection.address }}
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-
-        <v-col cols="12" md="6">
-          <v-card>
-            <v-card-title>Section Observations</v-card-title>
-            <v-card-text>
-              <v-bar-chart :data="sectionChartData" :options="chartOptions" />
             </v-card-text>
           </v-card>
         </v-col>
@@ -194,5 +182,8 @@ export default {
 
 .containerStats {
   padding: 3rem 0 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

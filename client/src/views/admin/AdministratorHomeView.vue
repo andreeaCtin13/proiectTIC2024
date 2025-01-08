@@ -439,6 +439,7 @@ export default {
   }
   .flexAdmin {
     flex-direction: column;
+    gap: 0;
   }
 }
 </style>
