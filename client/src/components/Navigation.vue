@@ -105,11 +105,9 @@ export default {
 
     const handleLogout = async () => {
       try {
-        await axios.post("/logout", {
-          method: "POST",
-          credentials: "include",
-        });
+        await axios.post("/logout", { method: "POST", credentials: "include" });
         sessionStorage.clear();
+        localStorage.removeItem("user_data");
         emit("logout");
         router.push("/");
       } catch (error) {

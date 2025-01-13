@@ -19,8 +19,13 @@ export default {
   setup() {
     const user = ref({ role: null });
 
+    // Reîncarcă datele utilizatorului la inițializare
+    const savedUser = localStorage.getItem("user_data");
+    if (savedUser) {
+      user.value = JSON.parse(savedUser);
+    }
+
     provide("user", user);
-    console.log("User provided in App.vue:", user);
 
     const isLoggedIn = computed(
       () =>
@@ -31,7 +36,7 @@ export default {
 
     const logout = () => {
       user.value = { role: null };
-      console.log("User logged out:", user.value);
+      localStorage.removeItem("user_data"); // Șterge datele utilizatorului
     };
 
     return {

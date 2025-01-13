@@ -130,6 +130,9 @@ export default {
         }
 
         const userData = response.data?.user || {};
+
+        localStorage.setItem("user_data", JSON.stringify(userData));
+
         console.log("USER DATA : ", userData);
         this.user.email = userData.email || "N/A";
         this.user.role = userData.role || "guest";
