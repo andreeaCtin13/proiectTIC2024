@@ -3,6 +3,12 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 
 const observingHistoryService = require("./observingHistoryService");
-router.get("/statistics", auth, observingHistoryService.getStatistics);
+const authorizeAdmin = require("../middleware/authAdmin");
+router.get(
+  "/statistics",
+  auth,
+  authorizeAdmin,
+  observingHistoryService.getStatistics
+);
 
 module.exports = router;
