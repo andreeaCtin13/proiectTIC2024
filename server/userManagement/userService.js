@@ -147,8 +147,6 @@ const checkEmailNotInUse = async (email) => {
 const saveSelections = async (req, res) => {
   const { userId, elections } = req.body;
 
-  console.log(userId);
-  console.log(elections);
   if (!userId || !elections || !Array.isArray(elections)) {
     return res.status(400).send("User ID and elections array are required");
   }
@@ -168,6 +166,31 @@ const saveSelections = async (req, res) => {
     res.status(200).send("Selections updated successfully");
   } catch (error) {
     console.error("Error saving selections:", error);
+    res.status(500).send(error.message || "Internal Server Error");
+  }
+};
+
+const getUserSelections = async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).send("User ID is required");
+  }
+
+  try {
+    const userRef = db.collection("users").doc(userId);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      return res.status(404).send("User not found");
+    }
+
+    const userData = userDoc.data();
+    const electionsAssociated = userData.electionsAssociated || [];
+
+    res.status(200).json({ electionsAssociated });
+  } catch (error) {
+    console.error("Error fetching user selections:", error);
     res.status(500).send(error.message || "Internal Server Error");
   }
 };
@@ -221,4 +244,5 @@ module.exports = {
   checkEmailNotInUse,
   saveSelections,
   sendMessageToObservers,
+  getUserSelections,
 };

@@ -1,38 +1,48 @@
 <template>
   <div>
     <v-container>
-      <v-text-field
-        v-model="search"
-        label="Search"
-        append-icon="mdi-magnify"
-        @input="debouncedFetchSections"
-        outlined
-        class="mb-4 padding"
-      ></v-text-field>
+      <v-row>
+        <v-col cols="12" sm="8">
+          <v-text-field
+            v-model="search"
+            :label="getSearchLabel"
+            append-icon="mdi-magnify"
+            @input="handleSearchInput"
+            outlined
+            clearable
+            @click:clear="clearSearch"
+            :error-messages="searchError"
+          ></v-text-field>
+        </v-col>
+        <v-col cols="12" sm="4">
+          <v-select
+            v-model="searchField"
+            :items="searchFields"
+            label="Search by"
+            outlined
+            @change="handleSearchFieldChange"
+          ></v-select>
+        </v-col>
+      </v-row>
 
-      <v-select
-        v-model="searchField"
-        :items="searchFields"
-        label="Search by"
-        outlined
-        class="mb-4"
-        @change="fetchSections"
-      ></v-select>
-
+      <!-- Data Table -->
       <v-data-table
+        :headers="headers"
         :items="sections"
         :options.sync="options"
+        :server-items-length="totalItems"
         :loading="loading"
-        class="elevation-1 table"
+        :footer-props="{
+          'items-per-page-options': [5, 10, 20, 50],
+          'items-per-page-text': 'Rows per page:',
+          showFirstLastPage: true,
+          'show-current-page': true,
+        }"
         @update:model-value="itemsPerPage = parseInt($event, 10)"
-        @update:options="fetchSections"
+        @update:options="handleTableUpdate"
+        class="elevation-1"
       >
-        <template v-slot:top>
-          <v-toolbar flat>
-            <v-toolbar-title>Sections</v-toolbar-title>
-          </v-toolbar>
-        </template>
-
+        <!-- Slot Templates -->
         <template v-slot:[`item.address`]="{ item }">
           <span @click="openModal(item)" class="clickable">{{
             item.address
@@ -53,25 +63,16 @@
             item.number
           }}</span>
         </template>
-
-        <template v-slot:bottom>
-          <div class="text-center pt-2">
-            <v-pagination
-              v-model="options.page"
-              :length="pageCount"
-              @input="fetchSections"
-            />
-          </div>
-        </template>
       </v-data-table>
 
+      <!-- Modal -->
       <v-dialog v-model="isModalOpen" max-width="600px">
         <v-card>
           <v-card-title>
-            <div class="flex">
+            <div class="d-flex align-center w-100">
               <h2>Section Details</h2>
               <v-spacer></v-spacer>
-              <v-btn icon @click="isModalOpen = false" class="btnClose">
+              <v-btn icon @click="closeModal" class="btnClose">
                 <v-icon class="x-icon">mdi-close</v-icon>
               </v-btn>
             </div>
@@ -83,10 +84,6 @@
             <p><strong>Number:</strong> {{ selectedSection.number }}</p>
           </v-card-text>
           <v-card-actions>
-            <v-snackbar v-model="showSnackbar" :timeout="3000" color="red">
-              Already observing another section.
-            </v-snackbar>
-
             <v-btn
               color="primary"
               text
@@ -95,13 +92,15 @@
             >
               Observe Section
             </v-btn>
-
-            <v-btn color="primary" text @click="isModalOpen = false"
-              >Close</v-btn
-            >
+            <v-btn color="grey" text @click="closeModal">Close</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
+
+      <!-- Snackbar -->
+      <v-snackbar v-model="showSnackbar" :timeout="3000" :color="snackbarColor">
+        {{ snackbarText }}
+      </v-snackbar>
     </v-container>
   </div>
 </template>
@@ -114,23 +113,23 @@ import { inject } from "vue";
 export default {
   setup() {
     const user = inject("user");
-    return {
-      user,
-    };
+    return { user };
   },
   data() {
     return {
       search: "",
+      searchError: "",
       searchField: "address",
-      searchFields: ["None", "address", "county", "location", "number"],
+      searchFields: ["county", "location", "number"],
       sections: [],
-      totalItems: 0,
       loading: false,
+      totalItems: 0,
       options: {
         page: 1,
         itemsPerPage: 10,
+        sortBy: [],
+        sortDesc: [],
       },
-      pageCount: 1,
       headers: [
         { text: "Address", value: "address" },
         { text: "County", value: "county" },
@@ -140,114 +139,141 @@ export default {
       isModalOpen: false,
       selectedSection: {},
       showSnackbar: false,
+      snackbarText: "",
+      snackbarColor: "error",
     };
   },
+  computed: {
+    getSearchLabel() {
+      return this.searchField === "number"
+        ? "Search by number..."
+        : "Search...";
+    },
+  },
   methods: {
-    handleObserveClick() {
-      if (this.user.observe) {
-        this.showSnackbar = true;
-      } else {
-        this.observeSection();
+    validateSearch() {
+      this.searchError = "";
+      if (this.searchField === "number" && this.search) {
+        if (isNaN(parseFloat(this.search))) {
+          this.searchError = "Please enter a valid number";
+          return false;
+        }
       }
+      return true;
+    },
+    handleTableUpdate(newOptions) {
+      this.options = { ...this.options, ...newOptions };
+      this.fetchSections();
     },
     async fetchSections() {
+      if (!this.validateSearch()) return;
+
       this.loading = true;
       try {
-        const { page, itemsPerPage } = this.options;
         const params = {
-          page,
-          itemsPerPage,
+          page: this.options.page,
+          itemsPerPage: this.options.itemsPerPage,
           search: this.search,
-          searchField: this.searchField !== "None" ? this.searchField : null,
+          searchField: this.searchField,
         };
-        const response = await axios.get("/sections", { params });
-        this.sections = response.data.items;
-        this.totalItems = response.data.total;
-        this.pageCount = Math.ceil(this.totalItems / itemsPerPage);
+        const { data } = await axios.get("/sections", { params });
+        this.sections = data.items;
+        this.totalItems = data.total;
       } catch (error) {
         console.error("Error fetching sections:", error);
+        this.showSnackbarMessage("Error loading sections", "error");
       } finally {
         this.loading = false;
       }
     },
-    debouncedFetchSections: debounce(function () {
-      this.fetchSections();
+    handleSearchInput: debounce(function () {
+      if (this.validateSearch()) this.fetchSections();
     }, 300),
+    handleSearchFieldChange() {
+      this.search = "";
+      this.searchError = "";
+      this.fetchSections();
+    },
+    clearSearch() {
+      this.search = "";
+      this.searchError = "";
+      this.fetchSections();
+    },
     openModal(item) {
       this.selectedSection = item;
       this.isModalOpen = true;
     },
-    async observeSection() {
+    closeModal() {
+      this.isModalOpen = false;
+      this.selectedSection = {};
+    },
+    showSnackbarMessage(text, color = "error") {
+      this.snackbarText = text;
+      this.snackbarColor = color;
+      this.showSnackbar = true;
+    },
+    async handleObserveClick() {
+      if (this.user.observe) {
+        this.showSnackbarMessage(
+          "Already observing another section",
+          "warning"
+        );
+        return;
+      }
       try {
         const sectionId = this.selectedSection.id;
-        const userId = this.user.id;
-
         await axios.patch(`/composed/${sectionId}/observe`, {
-          userId,
+          userId: this.user.id,
           observerEmail: this.user.email,
         });
-
         this.user.observe = true;
-        this.user.sectionObserved = {
-          ...this.selectedSection,
-        };
-
-        this.isModalOpen = false;
+        this.user.sectionObserved = { ...this.selectedSection };
+        this.showSnackbarMessage("Section successfully assigned", "success");
+        this.closeModal();
         this.fetchSections();
       } catch (error) {
         console.error("Error observing section:", error);
-        alert("Failed to observe section. Please try again.");
+        this.showSnackbarMessage(
+          "Failed to observe section. Please try again."
+        );
       }
     },
   },
   watch: {
-    "options.page": "fetchSections",
+    options: {
+      handler() {
+        this.fetchSections();
+      },
+      deep: true,
+    },
   },
   created() {
     this.fetchSections();
   },
 };
 </script>
-
 <style scoped>
-.mb-4 {
-  margin-bottom: 16px;
-}
-.v-data-table-header {
-  background-color: var(--var--dark-blue);
-  color: white;
-}
-.padding {
-  margin: 2rem 0;
-}
-.table {
-  margin-bottom: 2rem;
-  margin-top: 0;
-}
-.header {
-  color: black !important;
-  font-size: 2rem;
-}
 .clickable {
   cursor: pointer;
   color: var(--var--dark-blue);
-  transition: 0.3s;
+  transition: color 0.3s ease;
 }
+
 .clickable:hover {
   color: var(--var--close-red);
 }
 
-.flex {
-  display: flex;
-  justify-content: space-between;
-  flex-direction: row;
-  width: 100%;
-}
 .btnClose {
   background-color: var(--var--close-red);
 }
 
 .x-icon {
   color: var(--var--light-white);
+}
+
+@media screen and (max-width: 600px) {
+  .v-data-table {
+    font-size: 0.8rem;
+  }
 }
 </style>

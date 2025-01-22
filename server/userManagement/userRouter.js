@@ -33,4 +33,6 @@ router.post(
   userService.sendMessageToObservers
 );
 
+router.get("/userSelections/:userId", userService.getUserSelections);
+
 module.exports = router;

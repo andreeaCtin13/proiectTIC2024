@@ -234,6 +234,48 @@ export default {
     async uploadSections() {
       this.$refs.fileInput.click();
     },
+    async parseExcelFile(file) {
+      const XLSX = await import("xlsx");
+      const reader = new FileReader();
+      return new Promise((resolve, reject) => {
+        reader.onload = (event) => {
+          try {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheetName = workbook.SheetNames[0];
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+            resolve(rows);
+          } catch (error) {
+            reject(error);
+          }
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsArrayBuffer(file);
+      });
+    },
+    async submitFile() {
+      if (!this.selectedFile) {
+        alert("Please select a file first.");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("file", this.selectedFile);
+      try {
+        const response = await axios.post(
+          "http://localhost:3000/upload-sections",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        alert(`Upload successful: ${response.data.count} sections imported.`);
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        alert("Failed to upload sections.");
+      }
+    },
     async fetchElections() {
       try {
         const response = await axios.get("/elections");
@@ -338,6 +380,11 @@ export default {
   mounted() {
     this.fetchElections();
   },
+  watch: {
+    selectedFile() {
+      this.submitFile();
+    },
+  },
 };
 </script>
 
@@ -433,10 +480,17 @@ export default {
   padding: 1rem 0 0 0;
 }
 
+@media screen and(max-width:1000px) {
+  .btnImportSectii {
+    font-size: 1rem;
+  }
+}
+
 @media screen and (max-width: 900px) {
   .containerElections {
     flex-direction: column;
   }
+
   .flexAdmin {
     flex-direction: column;
     gap: 0;

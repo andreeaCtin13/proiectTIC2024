@@ -1,7 +1,6 @@
 const express = require("express");
 const xlsx = require("xlsx");
 const db = require("../db_config/dbInit");
-
 const getAllSections = async (req, res) => {
   try {
     const {
@@ -13,49 +12,50 @@ const getAllSections = async (req, res) => {
 
     const sectionsRef = db.collection("sections");
     const itemsPerPageNum = parseInt(itemsPerPage);
-
     let query = sectionsRef;
 
-    if (search && searchField !== "None") {
+    let snapshot = await query.get();
+
+    let filteredSections = snapshot.docs.filter((doc) => {
+      const data = doc.data();
+
+      // Filter out taken sections
+      if (data.status === "taken") return false;
+
+      // If no search or searchField is None, include all
+      if (!search || searchField === "None") return true;
+
+      const fieldValue = data[searchField];
+
       if (searchField === "number") {
-        const searchNumber = parseFloat(search);
-
-        if (!isNaN(searchNumber)) {
-          query = query
-            .where(searchField, ">=", searchNumber)
-            .where(searchField, "<=", searchNumber);
-        } else {
-          return res.status(400).json({ error: "Invalid number search value" });
-        }
-      } else {
-        query = query
-          .where(searchField, ">=", search.toLowerCase())
-          .where(searchField, "<=", search.toLowerCase() + "\uf8ff");
+        // For number field, convert both to strings and check if includes
+        const searchStr = search.toString();
+        const fieldStr = fieldValue.toString();
+        return fieldStr.includes(searchStr);
       }
-    }
 
-    // Fetch all documents to filter out those with status "taken" and include documents missing the status field
-    const snapshot = await query.get();
-
-    const filteredSections = snapshot.docs.filter(
-      (doc) => !doc.data().status || doc.data().status !== "taken"
-    );
+      // For text fields, do case-insensitive contains search
+      return (
+        fieldValue &&
+        fieldValue.toString().toLowerCase().includes(search.toLowerCase())
+      );
+    });
 
     const total = filteredSections.length;
 
-    // Apply pagination manually
     const startIndex = (page - 1) * itemsPerPageNum;
-    const paginatedSections = filteredSections.slice(
-      startIndex,
-      startIndex + itemsPerPageNum
-    );
+    const endIndex = startIndex + itemsPerPageNum;
+    const paginatedSections = filteredSections.slice(startIndex, endIndex);
 
     const sections = paginatedSections.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
 
-    res.json({ items: sections, total });
+    res.json({
+      items: sections,
+      total,
+    });
   } catch (error) {
     console.error("Error fetching sections:", error);
     res.status(500).json({ error: "Failed to fetch sections" });
@@ -72,10 +72,10 @@ const addSections = async (req, res) => {
 
     const sectionsRef = db.collection("sections");
     const newSection = {
-      address,
-      county,
-      location,
-      number,
+      address: address.toLowerCase(),
+      county: county.toLowerCase(),
+      location: location.toLowerCase(),
+      number: parseFloat(number),
     };
 
     const docRef = await sectionsRef.add(newSection);
@@ -98,10 +98,10 @@ const insertBulkSections = async (req, res) => {
     const data = xlsx.utils.sheet_to_json(sheet);
 
     const sections = data.map((row) => ({
-      address: row["ADRESA"],
-      county: row["JUDET"],
-      location: row["SEDIU SECTIE"],
-      number: row["NR. SECTIE VOTARE"],
+      address: row["ADRESA"].toLowerCase(),
+      county: row["JUDET"].toLowerCase(),
+      location: row["SEDIU SECTIE"].toLowerCase(),
+      number: parseFloat(row["NR. SECTIE VOTARE"]),
     }));
 
     const sectionsRef = db.collection("sections");
