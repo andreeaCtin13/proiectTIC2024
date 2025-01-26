@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-container class="container">
-      <v-row>
+      <v-row class="filterSearch">
         <v-col cols="12" sm="8" v-if="sections.length > 0">
           <v-text-field
             v-model="search"
@@ -25,49 +25,26 @@
         </v-col>
       </v-row>
 
-      <div v-if="sections.length > 0">
-        <v-data-table
-          :headers="headers"
-          :items="sections"
-          :options.sync="options"
-          :server-items-length="totalItems"
-          :loading="loading"
-          :footer-props="{
-            'items-per-page-options': [5, 10, 20, 50],
-            'items-per-page-text': 'Rows per page:',
-            showFirstLastPage: true,
-            'show-current-page': true,
-          }"
-          @update:model-value="itemsPerPage = parseInt($event, 10)"
-          @update:options="handleTableUpdate"
-          class="elevation-1"
-        >
-          <!-- Slot Templates -->
-          <template v-slot:[`item.address`]="{ item }">
-            <span @click="openModal(item)" class="clickable">{{
-              item.address
-            }}</span>
-          </template>
-          <template v-slot:[`item.county`]="{ item }">
-            <span @click="openModal(item)" class="clickable">{{
-              item.county
-            }}</span>
-          </template>
-          <template v-slot:[`item.location`]="{ item }">
-            <span @click="openModal(item)" class="clickable">{{
-              item.location
-            }}</span>
-          </template>
-          <template v-slot:[`item.number`]="{ item }">
-            <span @click="openModal(item)" class="clickable">{{
-              item.number
-            }}</span>
-          </template>
-        </v-data-table>
-      </div>
+      <div class="infinite-scroll" ref="infiniteScroll">
+        <div v-for="item in sections" :key="item.id" class="section-item">
+          <div @click="openModal(item)" class="clickable">
+            <p><strong>Address:</strong> {{ item.address }}</p>
+            <p><strong>County:</strong> {{ item.county }}</p>
+            <p><strong>Location:</strong> {{ item.location }}</p>
+            <p><strong>Number:</strong> {{ item.number }}</p>
+          </div>
+        </div>
 
-      <div v-else class="no-election-message">
-        <p>Sorry there is no election you signed up for observing.</p>
+        <v-progress-circular
+          v-if="loading"
+          indeterminate
+          color="primary"
+          class="loading-spinner"
+        ></v-progress-circular>
+
+        <div v-if="!loading && !sections.length" class="no-election-message">
+          <p>Sorry there is no election you signed up for observing.</p>
+        </div>
       </div>
 
       <!-- Modal -->
@@ -128,23 +105,15 @@ export default {
       sections: [],
       loading: false,
       totalItems: 0,
-      options: {
-        page: 1,
-        itemsPerPage: 10,
-        sortBy: [],
-        sortDesc: [],
-      },
-      headers: [
-        { text: "Address", value: "address" },
-        { text: "County", value: "county" },
-        { text: "Location", value: "location" },
-        { text: "Number", value: "number" },
-      ],
       isModalOpen: false,
       selectedSection: {},
       showSnackbar: false,
       snackbarText: "",
       snackbarColor: "error",
+      options: {
+        page: 1,
+        itemsPerPage: 10,
+      },
     };
   },
   computed: {
@@ -165,12 +134,8 @@ export default {
       }
       return true;
     },
-    handleTableUpdate(newOptions) {
-      this.options = { ...this.options, ...newOptions };
-      this.fetchSections();
-    },
     async fetchSections() {
-      if (!this.validateSearch()) return;
+      if (!this.validateSearch() || this.loading) return;
 
       this.loading = true;
       try {
@@ -179,8 +144,6 @@ export default {
         );
 
         const validElections = userElectionsResponse.data;
-        console.log("VALID ELECTIONS:", validElections.length);
-
         if (validElections.length === 0) {
           this.sections = [];
           this.totalItems = 0;
@@ -192,13 +155,14 @@ export default {
           itemsPerPage: this.options.itemsPerPage,
           search: this.search,
           searchField: this.searchField,
-          // elections: validElections.map((election) => election.id),
+          elections: validElections.map((election) => election.id),
         };
 
         const { data } = await axios.get("/sections", { params });
 
-        this.sections = data.items;
+        this.sections = [...this.sections, ...data.items];
         this.totalItems = data.total;
+        this.options.page++;
       } catch (error) {
         console.error("Error fetching sections:", error);
         this.showSnackbarMessage("Error loading sections", "error");
@@ -207,17 +171,24 @@ export default {
       }
     },
     handleSearchInput: debounce(function () {
-      if (this.validateSearch()) this.fetchSections();
+      if (this.validateSearch()) {
+        this.resetSections();
+      }
     }, 300),
+    resetSections() {
+      this.sections = [];
+      this.options.page = 1;
+      this.fetchSections();
+    },
     handleSearchFieldChange() {
       this.search = "";
       this.searchError = "";
-      this.fetchSections();
+      this.resetSections();
     },
     clearSearch() {
       this.search = "";
       this.searchError = "";
-      this.fetchSections();
+      this.resetSections();
     },
     openModal(item) {
       this.selectedSection = item;
@@ -250,7 +221,7 @@ export default {
         this.user.sectionObserved = { ...this.selectedSection };
         this.showSnackbarMessage("Section successfully assigned", "success");
         this.closeModal();
-        this.fetchSections();
+        this.resetSections();
       } catch (error) {
         console.error("Error observing section:", error);
         this.showSnackbarMessage(
@@ -258,14 +229,23 @@ export default {
         );
       }
     },
-  },
-  watch: {
-    options: {
-      handler() {
+    handleScroll() {
+      const container = this.$refs.infiniteScroll;
+      if (
+        container.scrollHeight - container.scrollTop <=
+        container.clientHeight + 50
+      ) {
         this.fetchSections();
-      },
-      deep: true,
+      }
     },
+  },
+  mounted() {
+    const container = this.$refs.infiniteScroll;
+    container.addEventListener("scroll", this.handleScroll);
+  },
+  beforeDestroy() {
+    const container = this.$refs.infiniteScroll;
+    container.removeEventListener("scroll", this.handleScroll);
   },
   created() {
     this.fetchSections();
@@ -274,26 +254,34 @@ export default {
 </script>
 
 <style scoped>
-.clickable {
-  cursor: pointer;
-  color: var(--var--dark-blue);
-  transition: color 0.3s ease;
-}
-
-.clickable:hover {
-  color: var(--var--close-red);
-}
-
-.btnClose {
-  background-color: var(--var--close-red);
-}
-
-.x-icon {
-  color: var(--var--light-white);
-}
-
 .container {
   padding: 4rem 0;
+}
+.infinite-scroll {
+  max-height: 600px;
+  overflow-y: auto;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.section-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #ddd;
+  background-color: #fff;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.section-item:last-child {
+  border-bottom: none;
+}
+
+.section-item:hover {
+  background-color: #f1f1f1;
 }
 
 .no-election-message {
@@ -303,12 +291,25 @@ export default {
   margin-top: 2rem;
 }
 
+.clickable {
+  color: var(--var--dark-blue);
+  transition: color 0.3s ease;
+}
+
+.clickable:hover {
+  color: var(--var--close-red);
+}
+
 @media screen and (max-width: 900px) {
-  .v-data-table {
-    font-size: 0.8rem;
-  }
   .container {
     padding: 0;
+    margin: 0 0.5rem;
+  }
+  .v-row {
+    max-width: 95%;
+  }
+  .infinite-scroll {
+    max-width: 95%;
   }
 }
 </style>
