@@ -174,13 +174,29 @@ export default {
 
       this.loading = true;
       try {
+        const userElectionsResponse = await axios.get(
+          `/users/${this.user.id}/elections`
+        );
+
+        const validElections = userElectionsResponse.data;
+        console.log("VALID ELECTIONS:", validElections.length);
+
+        if (validElections.length === 0) {
+          this.sections = [];
+          this.totalItems = 0;
+          return;
+        }
+
         const params = {
           page: this.options.page,
           itemsPerPage: this.options.itemsPerPage,
           search: this.search,
           searchField: this.searchField,
+          // elections: validElections.map((election) => election.id),
         };
+
         const { data } = await axios.get("/sections", { params });
+
         this.sections = data.items;
         this.totalItems = data.total;
       } catch (error) {
