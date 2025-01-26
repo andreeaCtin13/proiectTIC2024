@@ -1,6 +1,7 @@
 const express = require("express");
 const xlsx = require("xlsx");
 const db = require("../db_config/dbInit");
+
 const getAllSections = async (req, res) => {
   try {
     const {
@@ -19,22 +20,18 @@ const getAllSections = async (req, res) => {
     let filteredSections = snapshot.docs.filter((doc) => {
       const data = doc.data();
 
-      // Filter out taken sections
       if (data.status === "taken") return false;
 
-      // If no search or searchField is None, include all
       if (!search || searchField === "None") return true;
 
       const fieldValue = data[searchField];
 
       if (searchField === "number") {
-        // For number field, convert both to strings and check if includes
         const searchStr = search.toString();
         const fieldStr = fieldValue.toString();
         return fieldStr.includes(searchStr);
       }
 
-      // For text fields, do case-insensitive contains search
       return (
         fieldValue &&
         fieldValue.toString().toLowerCase().includes(search.toLowerCase())
@@ -52,7 +49,10 @@ const getAllSections = async (req, res) => {
       ...doc.data(),
     }));
 
+    const resultPrefix = "Filtered Sections: ";
+
     res.json({
+      message: "Filtered Sections: ",
       items: sections,
       total,
     });

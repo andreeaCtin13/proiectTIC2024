@@ -1,8 +1,8 @@
 <template>
   <div>
-    <v-container>
+    <v-container class="container">
       <v-row>
-        <v-col cols="12" sm="8">
+        <v-col cols="12" sm="8" v-if="sections.length > 0">
           <v-text-field
             v-model="search"
             :label="getSearchLabel"
@@ -14,7 +14,7 @@
             :error-messages="searchError"
           ></v-text-field>
         </v-col>
-        <v-col cols="12" sm="4">
+        <v-col cols="12" sm="4" v-if="sections.length > 0">
           <v-select
             v-model="searchField"
             :items="searchFields"
@@ -25,45 +25,50 @@
         </v-col>
       </v-row>
 
-      <!-- Data Table -->
-      <v-data-table
-        :headers="headers"
-        :items="sections"
-        :options.sync="options"
-        :server-items-length="totalItems"
-        :loading="loading"
-        :footer-props="{
-          'items-per-page-options': [5, 10, 20, 50],
-          'items-per-page-text': 'Rows per page:',
-          showFirstLastPage: true,
-          'show-current-page': true,
-        }"
-        @update:model-value="itemsPerPage = parseInt($event, 10)"
-        @update:options="handleTableUpdate"
-        class="elevation-1"
-      >
-        <!-- Slot Templates -->
-        <template v-slot:[`item.address`]="{ item }">
-          <span @click="openModal(item)" class="clickable">{{
-            item.address
-          }}</span>
-        </template>
-        <template v-slot:[`item.county`]="{ item }">
-          <span @click="openModal(item)" class="clickable">{{
-            item.county
-          }}</span>
-        </template>
-        <template v-slot:[`item.location`]="{ item }">
-          <span @click="openModal(item)" class="clickable">{{
-            item.location
-          }}</span>
-        </template>
-        <template v-slot:[`item.number`]="{ item }">
-          <span @click="openModal(item)" class="clickable">{{
-            item.number
-          }}</span>
-        </template>
-      </v-data-table>
+      <div v-if="sections.length > 0">
+        <v-data-table
+          :headers="headers"
+          :items="sections"
+          :options.sync="options"
+          :server-items-length="totalItems"
+          :loading="loading"
+          :footer-props="{
+            'items-per-page-options': [5, 10, 20, 50],
+            'items-per-page-text': 'Rows per page:',
+            showFirstLastPage: true,
+            'show-current-page': true,
+          }"
+          @update:model-value="itemsPerPage = parseInt($event, 10)"
+          @update:options="handleTableUpdate"
+          class="elevation-1"
+        >
+          <!-- Slot Templates -->
+          <template v-slot:[`item.address`]="{ item }">
+            <span @click="openModal(item)" class="clickable">{{
+              item.address
+            }}</span>
+          </template>
+          <template v-slot:[`item.county`]="{ item }">
+            <span @click="openModal(item)" class="clickable">{{
+              item.county
+            }}</span>
+          </template>
+          <template v-slot:[`item.location`]="{ item }">
+            <span @click="openModal(item)" class="clickable">{{
+              item.location
+            }}</span>
+          </template>
+          <template v-slot:[`item.number`]="{ item }">
+            <span @click="openModal(item)" class="clickable">{{
+              item.number
+            }}</span>
+          </template>
+        </v-data-table>
+      </div>
+
+      <div v-else class="no-election-message">
+        <p>Sorry there is no election you signed up for observing.</p>
+      </div>
 
       <!-- Modal -->
       <v-dialog v-model="isModalOpen" max-width="600px">
@@ -97,7 +102,6 @@
         </v-card>
       </v-dialog>
 
-      <!-- Snackbar -->
       <v-snackbar v-model="showSnackbar" :timeout="3000" :color="snackbarColor">
         {{ snackbarText }}
       </v-snackbar>
@@ -119,8 +123,8 @@ export default {
     return {
       search: "",
       searchError: "",
-      searchField: "address",
-      searchFields: ["county", "location", "number"],
+      searchField: "number",
+      searchFields: ["county", "number"],
       sections: [],
       loading: false,
       totalItems: 0,
@@ -252,6 +256,7 @@ export default {
   },
 };
 </script>
+
 <style scoped>
 .clickable {
   cursor: pointer;
@@ -271,9 +276,23 @@ export default {
   color: var(--var--light-white);
 }
 
-@media screen and (max-width: 600px) {
+.container {
+  padding: 4rem 0;
+}
+
+.no-election-message {
+  text-align: center;
+  font-size: 1.2rem;
+  color: var(--var--close-red);
+  margin-top: 2rem;
+}
+
+@media screen and (max-width: 900px) {
   .v-data-table {
     font-size: 0.8rem;
+  }
+  .container {
+    padding: 0;
   }
 }
 </style>

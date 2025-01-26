@@ -27,7 +27,8 @@
     <div v-else>
       <p>
         You have to search for a section first. Go to
-        <a href="/search" class="redirect-link">Search</a> the page.
+        <router-link to="/search" class="redirect-link">Search</router-link> the
+        page.
       </p>
     </div>
     <div v-if="isObserving()" class="container-release-button">

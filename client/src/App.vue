@@ -19,7 +19,6 @@ export default {
   setup() {
     const user = ref({ role: null });
 
-    // Reîncarcă datele utilizatorului la inițializare
     const savedUser = localStorage.getItem("user_data");
     if (savedUser) {
       user.value = JSON.parse(savedUser);
@@ -36,7 +35,7 @@ export default {
 
     const logout = () => {
       user.value = { role: null };
-      localStorage.removeItem("user_data"); // Șterge datele utilizatorului
+      localStorage.removeItem("user_data");
     };
 
     return {

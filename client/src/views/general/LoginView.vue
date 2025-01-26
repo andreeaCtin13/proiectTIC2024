@@ -130,7 +130,6 @@ export default {
         }
 
         const userData = response.data?.user || {};
-
         localStorage.setItem("user_data", JSON.stringify(userData));
 
         console.log("USER DATA : ", userData);
@@ -150,16 +149,20 @@ export default {
         console.log("Navigating to:", route);
         this.$router.push(route);
       } catch (error) {
-        console.error("Login error:", error);
-        toastr.error(
-          error?.response?.data?.message || "An unexpected error occurred",
-          "Login Failed"
-        );
+        const errorMessage =
+          error?.response?.data?.message || "An unexpected error occurred";
+
+        if (errorMessage === "No account found for this email") {
+          toastr.error(errorMessage, "Login Failed");
+        } else if (errorMessage === "Incorrect password") {
+          toastr.error(errorMessage, "Login Failed");
+        } else {
+          toastr.error(errorMessage, "Login Failed");
+        }
       } finally {
         this.loading = false;
       }
     },
-
     required(v) {
       return !!v || "Field is required";
     },

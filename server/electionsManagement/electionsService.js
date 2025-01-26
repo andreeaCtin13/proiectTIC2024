@@ -74,8 +74,29 @@ const updateElection = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 const getValidElections = async (req, res) => {
+  try {
+    const electionsSnapshot = await db.collection("elections").get();
+    const elections = [];
+    electionsSnapshot.forEach((doc) => {
+      const data = doc.data();
+      const currentDate = new Date();
+      const startDate = new Date(data.observingStartDate);
+      const endDate = new Date(data.observingEndDate);
+
+      if (data.isValid && startDate <= currentDate && currentDate <= endDate) {
+        elections.push({ id: doc.id, ...data });
+      }
+    });
+
+    res.status(200).json(elections);
+  } catch (error) {
+    console.error("Error fetching elections:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+const getValidElectionsToSignUp = async (req, res) => {
   try {
     const snapshot = await db.collection("elections").get();
     const elections = [];
@@ -103,4 +124,5 @@ module.exports = {
   deleteElection,
   updateElection,
   getValidElections,
+  getValidElectionsToSignUp,
 };

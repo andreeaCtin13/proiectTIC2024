@@ -5,6 +5,8 @@ const { electionsValidationRules } = require("../validators/electionValidator");
 const { validationResult } = require("express-validator");
 
 const electionsService = require("./electionsService");
+const authorizeObserver = require("../middleware/authObserver");
+const authorizeAdmin = require("../middleware/authAdmin");
 
 router.get("/elections", auth, electionsService.getAllElections);
 router.post(
@@ -21,7 +23,28 @@ router.post(
   },
   electionsService.addElection
 );
-router.put("/elections/:id", auth, electionsService.updateElection);
-router.delete("/elections/:id", auth, electionsService.deleteElection);
-router.get("/validElections", auth, electionsService.getValidElections);
+router.put(
+  "/elections/:id",
+  auth,
+  authorizeAdmin,
+  electionsService.updateElection
+);
+router.delete(
+  "/elections/:id",
+  auth,
+  authorizeAdmin,
+  electionsService.deleteElection
+);
+router.get(
+  "/validElections",
+  auth,
+  authorizeObserver,
+  electionsService.getValidElections
+);
+router.get(
+  "/getValidElectionsToSignUp",
+  auth,
+  authorizeObserver,
+  electionsService.getValidElectionsToSignUp
+);
 module.exports = router;

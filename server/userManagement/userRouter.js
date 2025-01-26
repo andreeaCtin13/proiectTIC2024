@@ -32,7 +32,12 @@ router.post(
   authorizeAdmin,
   userService.sendMessageToObservers
 );
-
+router.get(
+  "/users/:userId/elections",
+  auth,
+  authorizeObserver,
+  userService.getUserElections
+);
 router.get("/userSelections/:userId", userService.getUserSelections);
 
 module.exports = router;

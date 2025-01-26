@@ -86,7 +86,9 @@ const loginUser = async (req, res) => {
       .get();
 
     if (userDocSnapshot.empty) {
-      return res.status(404).json({ message: "Invalid email or password" });
+      return res
+        .status(404)
+        .json({ message: "No account found for this email" });
     }
 
     let user = null;
@@ -96,7 +98,7 @@ const loginUser = async (req, res) => {
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Incorrect password" });
     }
 
     const token = jwt.sign(
@@ -236,6 +238,55 @@ const sendMessageToObservers = async (req, res) => {
   }
 };
 
+const getUserElections = async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).send("User ID is required");
+  }
+
+  try {
+    const userDoc = await db.collection("users").doc(userId).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).send("User not found");
+    }
+
+    const userData = userDoc.data();
+    const electionsAssociated = userData.electionsAssociated || [];
+    console.log("electionsAssociated:", electionsAssociated);
+
+    if (electionsAssociated.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    const electionPromises = electionsAssociated.map((electionId) =>
+      db.collection("elections").doc(electionId).get()
+    );
+
+    const electionDocs = await Promise.all(electionPromises);
+
+    const validElections = electionDocs
+      .map((doc) => (doc.exists ? { id: doc.id, ...doc.data() } : null))
+      .filter((election) => {
+        if (!election) return false;
+        const currentDate = new Date();
+        const startDate = new Date(election.observingStartDate);
+        console.log("current date:", currentDate);
+        console.log("start date:", startDate);
+
+        return election.isValid && startDate <= currentDate;
+      });
+
+    console.log("valid elections:", validElections);
+
+    res.status(200).json(validElections);
+  } catch (error) {
+    console.error("Error fetching user elections:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
 module.exports = {
   getAllUsers,
   registerUser,
@@ -245,4 +296,5 @@ module.exports = {
   saveSelections,
   sendMessageToObservers,
   getUserSelections,
+  getUserElections,
 };
