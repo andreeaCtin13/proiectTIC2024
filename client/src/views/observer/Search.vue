@@ -42,8 +42,13 @@
           class="loading-spinner"
         ></v-progress-circular>
 
-        <div v-if="!loading && !sections.length" class="no-election-message">
-          <p>Sorry there is no election you signed up for observing.</p>
+        <div v-if="!loading && !sections.length">
+          <div v-if="!hasValidElections" class="no-election-message">
+            <p>Sorry, you are not signed up for any valid elections.</p>
+          </div>
+          <div v-else class="no-election-message">
+            <p>No voting sections match your search filters.</p>
+          </div>
         </div>
       </div>
 
@@ -114,6 +119,7 @@ export default {
         page: 1,
         itemsPerPage: 10,
       },
+      hasValidElections: true,
     };
   },
   computed: {
@@ -147,8 +153,11 @@ export default {
         if (validElections.length === 0) {
           this.sections = [];
           this.totalItems = 0;
+          this.hasValidElections = false;
           return;
         }
+
+        this.hasValidElections = true;
 
         const params = {
           page: this.options.page,

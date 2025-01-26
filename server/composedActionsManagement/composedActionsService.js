@@ -106,10 +106,6 @@ const releaseSection = async (req, res) => {
         checkoutTime = doc.data().checkoutTime;
       });
 
-      // if (checkoutTime) {
-      //   throw new Error("Section has already been checked out.");
-      // }
-
       const currentTime = new Date().toISOString();
       if (!checkInTime) {
         throw new Error("Cannot checkout before check-in.");
