@@ -9,6 +9,7 @@ const multer = require("multer");
 const fs = require("fs");
 
 const upload = multer({ dest: "uploads/" });
+const uploadComnplaints = multer({ dest: "uploads/" });
 
 router.get(
   "/sections",
@@ -28,6 +29,26 @@ router.post(
     } finally {
       if (req.file) {
         fs.unlinkSync(req.file.path);
+      }
+    }
+  }
+);
+router.post(
+  "/sections/uploadInjusticeReport",
+  auth,
+  authorizeObserver,
+  uploadComnplaints.single("file"),
+  async (req, res) => {
+    try {
+      await sectionsService.uploadInjusticeReport(req, res);
+    } finally {
+      if (req.file) {
+        const filePath = req.file.path;
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        } else {
+          console.warn(`File not found: ${filePath}`);
+        }
       }
     }
   }

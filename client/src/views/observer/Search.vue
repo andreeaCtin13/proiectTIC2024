@@ -52,7 +52,6 @@
         </div>
       </div>
 
-      <!-- Modal -->
       <v-dialog v-model="isModalOpen" max-width="600px">
         <v-card>
           <v-card-title>

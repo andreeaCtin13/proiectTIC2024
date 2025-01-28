@@ -1,6 +1,7 @@
 const express = require("express");
 const xlsx = require("xlsx");
 const db = require("../db_config/dbInit");
+const fs = require("fs");
 
 const getAllSections = async (req, res) => {
   try {
@@ -128,9 +129,33 @@ const insertBulkSections = async (req, res) => {
     res.status(500).json({ error: "Failed to upload sections" });
   }
 };
+const uploadInjusticeReport = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    if (req.file.mimetype !== "application/pdf") {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: "Only PDF files are allowed" });
+    }
+
+    const targetPath = `uploads/reports/${Date.now()}_${req.file.originalname}`;
+    fs.renameSync(req.file.path, targetPath);
+
+    res.status(200).json({
+      message: "File uploaded successfully.",
+      filePath: targetPath,
+    });
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    res.status(500).json({ error: "Failed to upload file" });
+  }
+};
 
 module.exports = {
   getAllSections,
   addSections,
   insertBulkSections,
+  uploadInjusticeReport,
 };
