@@ -147,8 +147,8 @@ export default {
         const userElectionsResponse = await axios.get(
           `/users/${this.user.id}/elections`
         );
-
         const validElections = userElectionsResponse.data;
+
         if (validElections.length === 0) {
           this.sections = [];
           this.totalItems = 0;
@@ -163,11 +163,10 @@ export default {
           itemsPerPage: this.options.itemsPerPage,
           search: this.search,
           searchField: this.searchField,
-          elections: validElections.map((election) => election.id),
+          elections: validElections.map((election) => election.name),
         };
 
         const { data } = await axios.get("/sections", { params });
-
         this.sections = [...this.sections, ...data.items];
         this.totalItems = data.total;
         this.options.page++;

@@ -7,24 +7,26 @@
       Please select the elections you want to observe:
     </h2>
     <h2 v-if="!isEditing" class="p1top">The elections you selected:</h2>
+
     <div v-if="isEditing">
       <div v-for="election in validElections" :key="election.id">
         <label class="label">
           <input
             class="inputCheck"
             type="checkbox"
-            :value="election.id"
+            :value="election"
             v-model="selectedElections"
           />
           {{ election.name }}
         </label>
       </div>
     </div>
+
     <div v-else class="ol">
       <p v-if="selectedElections.length === 0">No elections selected.</p>
       <ol v-else>
-        <li v-for="electionId in selectedElections" :key="electionId">
-          {{ getElectionName(electionId) }}
+        <li v-for="election in selectedElections" :key="election.id">
+          {{ election.name }} - {{ election.date }}
         </li>
       </ol>
     </div>
@@ -53,9 +55,7 @@ export default {
     const getValidElections = async () => {
       try {
         const response = await axios.get("/getValidElectionsToSignUp");
-        validElections.value = response.data.filter(
-          (election) => election.isValid
-        );
+        validElections.value = response.data.filter((e) => e.isValid);
       } catch (error) {
         console.error("Error fetching elections:", error);
       }
@@ -87,10 +87,14 @@ export default {
           return;
         }
 
+        // Trimiterea doar a ID-urilor alegerilor către backend
+        const electionsToSave = selectedElections.value.map((e) => e.id);
+
         const response = await axios.put("/saveElections", {
           userId: user.value.id,
-          elections: selectedElections.value,
+          elections: electionsToSave,
         });
+
         console.log("Selections saved:", response.data);
         toastr.success("Changes saved!", "Success");
 
@@ -111,11 +115,6 @@ export default {
       }
     };
 
-    const getElectionName = (id) => {
-      const election = validElections.value.find((e) => e.id === id);
-      return election ? election.name : "Unknown election";
-    };
-
     onMounted(async () => {
       await getValidElections();
       await getUserSelections();
@@ -128,7 +127,6 @@ export default {
       isEditing,
       btnValue,
       toggleEditMode,
-      getElectionName,
     };
   },
 };

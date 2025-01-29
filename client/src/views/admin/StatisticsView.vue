@@ -56,18 +56,16 @@
               <v-data-table
                 :headers="tableHeaders"
                 :items="sectionStats"
-                item-key="sectionId"
-                ><template v-slot:[`item?.number`]="{ item }">
-                  <span>{{ item?.number || "N/A" }}</span>
-                </template>
-                <template v-slot:[`item.location`]="{ item }">
-                  <span>{{ item.location || "N/A" }}</span>
-                </template>
-                <template v-slot:[`item.county`]="{ item }">
-                  <span>{{ item.county || "N/A" }}</span>
-                </template>
-                <template v-slot:[`item.address`]="{ item }">
-                  <span>{{ item.address || "N/A" }}</span>
+                item-value="sectionId"
+              >
+                <template v-slot:item="{ item }">
+                  <tr>
+                    <td>{{ item.number || "N/A" }}</td>
+                    <td>{{ item.location || "N/A" }}</td>
+                    <td>{{ item.county || "N/A" }}</td>
+                    <td>{{ item.address || "N/A" }}</td>
+                    <td>{{ item.count || 0 }}</td>
+                  </tr>
                 </template>
               </v-data-table>
             </v-card-text>
@@ -121,11 +119,11 @@ export default {
       ],
     });
     const tableHeaders = [
-      { text: "Number", value: "number" },
-      { text: "Location", value: "location" },
-      { text: "County", value: "county" },
-      { text: "Address", value: "address" },
-      { text: "Observations", value: "count" },
+      { title: "Number", key: "number" },
+      { title: "Location", key: "location" },
+      { title: "County", key: "county" },
+      { title: "Address", key: "address" },
+      { title: "Observations", key: "count" },
     ];
 
     const chartOptions = {

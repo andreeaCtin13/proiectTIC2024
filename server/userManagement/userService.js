@@ -161,8 +161,23 @@ const saveSelections = async (req, res) => {
       return res.status(404).send("User not found");
     }
 
+    const electionsData = await Promise.all(
+      elections.map(async (electionId) => {
+        const electionRef = db.collection("elections").doc(electionId);
+        const electionDoc = await electionRef.get();
+
+        if (electionDoc.exists) {
+          return { id: electionId, ...electionDoc.data() };
+        } else {
+          return null;
+        }
+      })
+    );
+
+    const validElections = electionsData.filter((e) => e !== null);
+
     await userRef.update({
-      electionsAssociated: elections,
+      electionsAssociated: validElections,
     });
 
     res.status(200).send("Selections updated successfully");
@@ -256,30 +271,13 @@ const getUserElections = async (req, res) => {
     const electionsAssociated = userData.electionsAssociated || [];
     console.log("electionsAssociated:", electionsAssociated);
 
-    if (electionsAssociated.length === 0) {
-      return res.status(200).json([]);
-    }
-
-    const electionPromises = electionsAssociated.map((electionId) =>
-      db.collection("elections").doc(electionId).get()
-    );
-
-    const electionDocs = await Promise.all(electionPromises);
-
-    const validElections = electionDocs
-      .map((doc) => (doc.exists ? { id: doc.id, ...doc.data() } : null))
-      .filter((election) => {
-        if (!election) return false;
-        const currentDate = new Date();
-        const startDate = new Date(election.observingStartDate);
-        console.log("current date:", currentDate);
-        console.log("start date:", startDate);
-
-        return election.isValid && startDate <= currentDate;
-      });
+    const currentDate = new Date();
+    const validElections = electionsAssociated.filter((election) => {
+      const startDate = new Date(election.observingStartDate);
+      return election.isValid && startDate <= currentDate;
+    });
 
     console.log("valid elections:", validElections);
-
     res.status(200).json(validElections);
   } catch (error) {
     console.error("Error fetching user elections:", error);

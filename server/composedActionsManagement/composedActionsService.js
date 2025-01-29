@@ -25,34 +25,43 @@ const observeSection = async (req, res) => {
       const userRef = db.collection("users").doc(userId);
       const userDoc = await transaction.get(userRef);
 
-      if (!userDoc.exists || !userDoc.data().email) {
-        throw new Error("User not found or user does not have an email");
+      if (!userDoc.exists) {
+        throw new Error("User not found");
       }
 
+      // Actualizare status secție
       transaction.update(sectionRef, { status: "taken" });
 
-      const userEmail = userDoc.data().email;
-      const checkInTime = new Date().toISOString();
-
-      const observingHistoryRef = db.collection("observing_history").doc();
-      await transaction.set(observingHistoryRef, {
-        sectionId,
-        checkInTime,
-        observerEmail: userEmail,
-      });
-
-      const sectionData = sectionDoc.data();
-      const sectionObserved = {
-        id: sectionId,
-        address: sectionData.address,
-        county: sectionData.county,
-        location: sectionData.location,
-        number: sectionData.number,
+      // Obiect cu toate detaliile utilizatorului
+      const observer = {
+        userId,
+        name: userDoc.data().name || "N/A",
+        email: userDoc.data().email || "N/A",
+        role: userDoc.data().role || "N/A",
+        phone: userDoc.data().phone || "N/A",
       };
 
+      // Obiect cu toate detaliile secției
+      const sectionObserved = {
+        sectionId,
+        number: sectionDoc.data().number || "N/A",
+        location: sectionDoc.data().location || "N/A",
+        county: sectionDoc.data().county || "N/A",
+        address: sectionDoc.data().address || "N/A",
+      };
+
+      // Salvăm în `observing_history`
+      const observingHistoryRef = db.collection("observing_history").doc();
+      transaction.set(observingHistoryRef, {
+        observer, // Obiect cu datele utilizatorului
+        sectionObserved, // Obiect cu datele secției
+        checkInTime: new Date().toISOString(),
+      });
+
+      // Salvăm și în documentul utilizatorului ultima secție observată
       transaction.update(userRef, {
         observe: true,
-        sectionObserved,
+        sectionObserved, // Obiect complet al secției observate
       });
     });
 
@@ -82,14 +91,16 @@ const releaseSection = async (req, res) => {
       const userRef = db.collection("users").doc(userId);
       const userDoc = await transaction.get(userRef);
 
-      if (!userDoc.exists || !userDoc.data().email) {
-        throw new Error("User not found or user does not have an email");
+      if (!userDoc.exists) {
+        throw new Error("User not found");
       }
 
+      // Căutăm intrarea de observare în istoricul observațiilor
       const observingHistoryRef = db
         .collection("observing_history")
-        .where("sectionId", "==", sectionId)
-        .where("observerEmail", "==", userDoc.data().email);
+        .where("observer.userId", "==", userId)
+        .where("sectionObserved.sectionId", "==", sectionId);
+
       const historySnapshot = await observingHistoryRef.get();
 
       if (historySnapshot.empty) {
@@ -98,24 +109,17 @@ const releaseSection = async (req, res) => {
         );
       }
 
-      let checkInTime;
-      let checkoutTime;
-
-      historySnapshot.forEach((doc) => {
-        checkInTime = doc.data().checkInTime;
-        checkoutTime = doc.data().checkoutTime;
-      });
-
       const currentTime = new Date().toISOString();
-      if (!checkInTime) {
-        throw new Error("Cannot checkout before check-in.");
-      }
 
+      // Adăugăm `checkoutTime` la toate înregistrările relevante
       historySnapshot.forEach((doc) => {
         transaction.update(doc.ref, { checkoutTime: currentTime });
       });
 
+      // Resetăm secția ca fiind disponibilă
       transaction.update(sectionRef, { status: "available" });
+
+      // Eliminăm secția observată din datele utilizatorului
       transaction.update(userRef, {
         observe: false,
         sectionObserved: FieldValue.delete(),

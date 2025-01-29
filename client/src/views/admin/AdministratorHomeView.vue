@@ -415,6 +415,7 @@ export default {
 .btnImportSectii {
   background-color: var(--var--dark-blue);
   color: white;
+  font-size: 1rem;
 }
 
 .containerElections {

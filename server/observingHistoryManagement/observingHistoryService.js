@@ -1,6 +1,5 @@
+const { FieldValue } = require("firebase-admin/firestore");
 const db = require("../db_config/dbInit");
-const admin = require("firebase-admin");
-const Timestamp = admin.firestore.Timestamp;
 
 const getStatistics = async (req, res) => {
   try {
@@ -9,61 +8,52 @@ const getStatistics = async (req, res) => {
       .get();
     const totalObservations = totalObservationsSnap.size;
 
-    const observations = await db.collection("observing_history").get();
     let totalDuration = 0;
+    let sectionCounts = {};
+    let sections = {};
+
+    const observations = await db.collection("observing_history").get();
+
     observations.forEach((doc) => {
-      const checkInTime = doc.data().checkInTime;
-      const checkOutTime = doc.data().checkoutTime;
+      const data = doc.data();
+      const { checkInTime, checkoutTime, sectionObserved } = data;
 
-      if (checkInTime && checkOutTime) {
-        const checkInTimeMillis = new Date(checkInTime).getTime();
-        const checkOutTimeMillis = new Date(checkOutTime).getTime();
+      // Calculăm durata observației
+      if (checkInTime && checkoutTime) {
+        totalDuration +=
+          new Date(checkoutTime).getTime() - new Date(checkInTime).getTime();
+      }
 
-        totalDuration += checkOutTimeMillis - checkInTimeMillis;
+      if (sectionObserved && sectionObserved.sectionId) {
+        const sectionId = sectionObserved.sectionId;
+        sectionCounts[sectionId] = (sectionCounts[sectionId] || 0) + 1;
+
+        if (!sections[sectionId]) {
+          sections[sectionId] = { ...sectionObserved };
+        }
       }
     });
 
-    const averageDuration = observations.size
-      ? parseFloat((totalDuration / observations.size / 60000).toFixed(2))
+    const averageDuration = totalObservations
+      ? parseFloat((totalDuration / totalObservations / 60000).toFixed(2))
       : 0;
 
-    const sectionsSnapshot = await db.collection("sections").get();
-    const sections = {};
-    sectionsSnapshot.forEach((doc) => {
-      const data = doc.data();
-      const sectionId = doc.id;
-
-      sections[sectionId] = {
-        id: sectionId,
-        ...data,
-      };
-    });
-
-    const sectionCounts = {};
-    observations.forEach((doc) => {
-      const sectionId = doc.data().sectionId;
-      if (sectionCounts[sectionId]) {
-        sectionCounts[sectionId]++;
-      } else {
-        sectionCounts[sectionId] = 1;
-      }
-    });
-
     const sectionStats = Object.entries(sectionCounts).map(
-      ([sectionId, count]) => {
-        const sectionDetails = sections[sectionId] || {};
-        return {
-          sectionId,
-          count,
-          ...sectionDetails,
-        };
-      }
+      ([sectionId, count]) => ({
+        sectionId,
+        number: sections[sectionId]?.number || "N/A",
+        location: sections[sectionId]?.location || "N/A",
+        county: sections[sectionId]?.county || "N/A",
+        address: sections[sectionId]?.address || "N/A",
+        count,
+      })
     );
 
-    const mostObservedSectionId = Object.keys(sectionCounts).reduce((a, b) =>
-      sectionCounts[a] > sectionCounts[b] ? a : b
+    const mostObservedSectionId = Object.keys(sectionCounts).reduce(
+      (a, b) => (sectionCounts[a] > sectionCounts[b] ? a : b),
+      null
     );
-    const mostObservedSection = sections[mostObservedSectionId];
+    const mostObservedSection = sections[mostObservedSectionId] || {};
 
     res.json({
       totalObservations,
